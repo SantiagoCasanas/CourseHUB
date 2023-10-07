@@ -1,0 +1,4 @@
+# CourseHUB
+CourseHub is an application designed to dedicate short periods of your day to learn about topics of your interest, and also to teach about what you know. When you download it, you will be able to access hundreds of courses created by professionals, students, or simply people who want to share their knowledge, divided into short and quick-to-read modules. In addition, you will be able to upload your own courses and receive ratings from other users.
+Our goal is that little by little the application is nourished by the contributions of all our learners and readers, of all kinds of topics, and through the ratings to filter and recommend the best courses according to the topic you want, and thus encourage reading on topics of our liking.
+Discover how CourseHub is revolutionizing online education. Start your personalized learning journey today and experience the difference in the way you learn.
