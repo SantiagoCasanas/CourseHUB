@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "541360804333",
+    "project_id": "coursehub-81ae9",
+    "storage_bucket": "coursehub-81ae9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:541360804333:android:e7fc583a47510ab57397e4",
+        "android_client_info": {
+          "package_name": "com.example.coursehub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsqOfn3u6TdH5Gof5hQIs0RrjWmi7TRrU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
