@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">CourseHUB</string>
+    <string name="No_account">I do not have an account</string>
+    <string name="Log_in">Log In</string>
+    <string name="Sign_up">Sign Up</string>
+    <string name="Have_account">I already have an acount</string>
 </resources>
