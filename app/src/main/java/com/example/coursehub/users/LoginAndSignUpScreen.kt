@@ -190,6 +190,7 @@ fun UsernameInput(label: String, fieldState: MutableState<String>) {
         value = fieldState.value,
         onValueChange = { fieldState.value = it },
         label = { Text(label,color=Color.White) },
+        textStyle = LocalTextStyle.current.copy(color = Color.White),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -202,6 +203,7 @@ fun NameInput(label: String, fieldState: MutableState<String>) {
         value = fieldState.value,
         onValueChange = { fieldState.value = it },
         label = { Text(label,color=Color.White) },
+        textStyle = LocalTextStyle.current.copy(color = Color.White),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -275,6 +277,7 @@ fun EmailInput(emailState: MutableState<String>, label:String) {
         value = emailState.value,
         onValueChange = { emailState.value = it },
         label = { Text(label,color=Color.White) },
+        textStyle = LocalTextStyle.current.copy(color = Color.White),
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
