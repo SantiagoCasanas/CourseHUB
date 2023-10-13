@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -21,7 +22,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -39,9 +39,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
+import androidx.compose.material.TextField
+import androidx.compose.material3.IconButtonColors
 
 @Composable
-fun signUpScreen(
+fun SignUpScreen(
     viewModel: UserViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val showLoginForm = rememberSaveable {
@@ -68,7 +70,8 @@ fun signUpScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 130.dp).background(color = colorResource(id = R.color.Background_up))
+                .padding(top = 130.dp)
+                .background(color = colorResource(id = R.color.Background_up))
                 .clip(shape = RoundedCornerShape(15.dp))
         ) {
             Column(
@@ -118,24 +121,13 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
 
     Column(
         horizontalAlignment = Alignment.Start,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
-        // Etiqueta para Email
-        Text(
-            text = "Your Email",
-            color = Color.White, // Color del texto en blanco
-            modifier = Modifier.padding(top = 8.dp)
-        )
 
         // Entrada de Email
-        EmailInput(emailState = email)
-
-        // Etiqueta para Password
-        Text(
-            text = "Password",
-            color = Color.White, // Color del texto en blanco
-            modifier = Modifier.padding(top = 16.dp)
-        )
+        EmailInput(label="Email",emailState = email)
 
         // Entrada de Password
         PasswordInput(
@@ -167,7 +159,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false, onDone: (String,String, St
     val username = rememberSaveable { mutableStateOf("") }
     Column (horizontalAlignment = Alignment.CenterHorizontally,
         ){
-        EmailInput(
+        EmailInput(label="Email",
             emailState = email
         )
         NameInput(
@@ -197,7 +189,7 @@ fun UsernameInput(label: String, fieldState: MutableState<String>) {
     androidx.compose.material.OutlinedTextField(
         value = fieldState.value,
         onValueChange = { fieldState.value = it },
-        label = { Text(label) },
+        label = { Text(label,color=Color.White) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -209,7 +201,7 @@ fun NameInput(label: String, fieldState: MutableState<String>) {
     androidx.compose.material.OutlinedTextField(
         value = fieldState.value,
         onValueChange = { fieldState.value = it },
-        label = { Text(label) },
+        label = { Text(label,color=Color.White) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -248,7 +240,8 @@ fun PasswordInput(passwordSate: MutableState<String>,
     else PasswordVisualTransformation()
     androidx.compose.material.OutlinedTextField(value = passwordSate.value,
         onValueChange ={passwordSate.value = it},
-        label = { Text(text = labelId) },
+        label = { Text(text = labelId,color=Color.White) },
+        textStyle = LocalTextStyle.current.copy(color = Color.White),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password
@@ -259,29 +252,32 @@ fun PasswordInput(passwordSate: MutableState<String>,
         visualTransformation = visualTransformation,
         trailingIcon = {
             if(passwordSate.value.isNotBlank()){
-                passwordVisibleIcon(passwordVisible)
+                PasswordVisibleIcon(passwordVisible)
             }else null
         }
     )
 }
 
 @Composable
-fun passwordVisibleIcon(passwordVisible: MutableState<Boolean>) {
+fun PasswordVisibleIcon(passwordVisible: MutableState<Boolean>) {
     val image = if (passwordVisible.value)
         Icons.Default.VisibilityOff
     else
         Icons.Default.Visibility
     IconButton(onClick = { passwordVisible.value = !passwordVisible.value}) {
-        Icon(imageVector = image, contentDescription ="")
+        Icon(imageVector = image, contentDescription ="", tint = Color.White)
     }
 }
 
 @Composable
-fun EmailInput(emailState: MutableState<String>, labelId: String = "Email") {
-    InputField(
-        valueState = emailState,
-        labelId = labelId,
-        keyboardType = KeyboardType.Email
+fun EmailInput(emailState: MutableState<String>, label:String) {
+    androidx.compose.material.OutlinedTextField(
+        value = emailState.value,
+        onValueChange = { emailState.value = it },
+        label = { Text(label,color=Color.White) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
     )
 }
 
@@ -295,7 +291,7 @@ fun InputField(
     TextField(
         value = valueState.value,
         onValueChange = { valueState.value = it },
-        label = { Text(text = labelId) },
+        label = { Text(text = labelId,color=Color.White)},
         singleLine = isSingleLine,
         modifier = Modifier
             .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
@@ -303,6 +299,7 @@ fun InputField(
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType
         ),
-        textStyle = TextStyle(color = Color.White)
+        textStyle = LocalTextStyle.current.copy(color = Color.White)
     )
+
 }
