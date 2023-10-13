@@ -84,8 +84,8 @@ fun SignUpScreen(
                         viewModel.logIn(email, password)
                     }
                 } else {
-                    UserCreateForm(isCreatedAccount = true) { email, fullname, username, password ->
-                        viewModel.signUp(email, fullname, username, password)
+                    UserCreateForm(isCreatedAccount = true) { email, fullName, username,password ->
+                        viewModel.createUserWithEmailAndPassword(email,password,fullName,username)
                         showLoginForm.value = true
                     }
                 }
