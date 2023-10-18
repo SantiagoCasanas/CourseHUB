@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +47,13 @@ import com.example.coursehub.network.sendLoginUserData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import android.content.Context
+
 
 @Composable
 fun SignUpScreen(
-    navController: NavController
+    navController: NavController,
+    context: Context = LocalContext.current
 ) {
     val showLoginForm = rememberSaveable {
         mutableStateOf(true)
@@ -88,7 +92,7 @@ fun SignUpScreen(
                     UserLoginForm(isCreatedAccount = false) { username, password ->
                         runBlocking {
                             launch(Dispatchers.IO) {
-                                sendLoginUserData(username,password){
+                                sendLoginUserData(context, username,password){
                                     navController.navigate(Screens.HomeScreen.name)
                                 }
                             }

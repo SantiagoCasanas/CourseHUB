@@ -1,5 +1,6 @@
 package com.example.coursehub.network
 
+import android.content.Context
 import android.util.Log
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
@@ -12,8 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.content.SharedPreferences
 
 private const val BASE_URL = "https://jesus.pythonanywhere.com/"
+private const val PREFS_NAME = "CourseHUB_prefs"
 
 private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
@@ -40,13 +43,15 @@ suspend fun sendCreateUserData(email:String,fullName:String,username:String,pass
     }
 }
 
-suspend fun sendLoginUserData(username: String, password: String, home:()-> Unit){
+suspend fun sendLoginUserData(context: Context, username: String, password: String, home:()-> Unit){
     GlobalScope.launch(Dispatchers.IO) {
         try {
             val loginUser = LoginUser(username, password)
             val response = userService.loginUser(loginUser)
             withContext(Dispatchers.Main) {
                 Log.d("you're logged in", "${response.access}")
+                saveAccessToken(context,response.access)
+                Log.d("Token saved","${getAccessToken(context)}")
                 home()
             }
         } catch (e: Exception) {
@@ -55,6 +60,30 @@ suspend fun sendLoginUserData(username: String, password: String, home:()-> Unit
             }
         }
     }
+}
+
+private fun saveAccessToken(context: Context, accessToken: String) {
+    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putString("access_token", accessToken)
+    editor.apply()
+}
+
+private fun getAccessToken(context: Context): String? {
+    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPreferences.getString("access_token", null)
+}
+
+private fun saveRefreshToken(context: Context, refreshToken: String) {
+    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putString("refresh_token", refreshToken)
+    editor.apply()
+}
+
+private fun getRefreshToken(context: Context): String? {
+    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPreferences.getString("refresh_token", null)
 }
 
 

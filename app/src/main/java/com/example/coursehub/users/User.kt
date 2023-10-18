@@ -19,5 +19,7 @@ data class LoginUser(
 )
 
 data class LoginResponse(
+    val id: String,
+    val refresh: String,
     val access:String
 )
