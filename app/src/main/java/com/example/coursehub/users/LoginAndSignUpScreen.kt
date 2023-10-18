@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,17 +39,22 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
-import androidx.compose.material.TextField
-import androidx.compose.material3.IconButtonColors
+import androidx.navigation.NavController
+import com.example.coursehub.navigation.Screens
+import com.example.coursehub.network.sendCreateUserData
+import com.example.coursehub.network.sendLoginUserData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun SignUpScreen(
-    viewModel: UserViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    navController: NavController
 ) {
     val showLoginForm = rememberSaveable {
         mutableStateOf(true)
     }
-    val text = if (showLoginForm.value) "Log In" else "Sign Up"
+    val text = if (showLoginForm.value) stringResource(id = R.string.Log_in) else stringResource(id = R.string.Sign_up)
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -80,12 +85,22 @@ fun SignUpScreen(
             ) {
                 Spacer(modifier = Modifier.height(15.dp))
                 if (showLoginForm.value) {
-                    UserLoginForm(isCreatedAccount = false) { email, password ->
-                        viewModel.logIn(email, password)
+                    UserLoginForm(isCreatedAccount = false) { username, password ->
+                        runBlocking {
+                            launch(Dispatchers.IO) {
+                                sendLoginUserData(username,password){
+                                    navController.navigate(Screens.HomeScreen.name)
+                                }
+                            }
+                        }
                     }
                 } else {
                     UserCreateForm(isCreatedAccount = true) { email, fullName, username,password ->
-                        viewModel.createUserWithEmailAndPassword(email,password,fullName,username)
+                        runBlocking {
+                            launch(Dispatchers.IO) {
+                                sendCreateUserData(email,fullName,username,password)
+                            }
+                        }
                         showLoginForm.value = true
                     }
                 }
@@ -94,8 +109,8 @@ fun SignUpScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val text1 = if (showLoginForm.value) "I don't have an account" else "I already have an account"
-                    val text2 = if (showLoginForm.value) "Sign Up" else "Login"
+                    val text1 = if (showLoginForm.value) stringResource(id = R.string.No_account) else stringResource(id = R.string.Have_account)
+                    val text2 = if (showLoginForm.value) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
 
                     Text(
                         text = text1,
@@ -127,17 +142,17 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
     ) {
 
         // Entrada de Email
-        EmailInput(label="Email",emailState = email)
+        EmailInput(label= stringResource(id = R.string.email),emailState = email)
 
         // Entrada de Password
         PasswordInput(
             passwordSate = password,
-            labelId = "Password",
+            labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
 
         // Botón de envío
-        SubmitButton(textId = if (isCreatedAccount) "Sign Up" else "Log In") {
+        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)) {
             onDone(email.value.trim(), password.value.trim())
         }
     }
@@ -159,24 +174,24 @@ fun UserCreateForm(isCreatedAccount: Boolean = false, onDone: (String,String, St
     val username = rememberSaveable { mutableStateOf("") }
     Column (horizontalAlignment = Alignment.CenterHorizontally,
         ){
-        EmailInput(label="Email",
+        EmailInput(label=stringResource(id = R.string.email),
             emailState = email
         )
         NameInput(
-            label = "Full name",
+            label = stringResource(id = R.string.fullname),
             fieldState = fullname
         )
         UsernameInput(
-            label = "Username",
+            label = stringResource(id = R.string.username),
             fieldState = username
         )
         PasswordInput(
             passwordSate = password,
-            labelId = "Password",
+            labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
         SubmitButton(
-            textId = if(isCreatedAccount)"Sign Up" else "Log in"
+            textId = if(isCreatedAccount)stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
         ){
             onDone(email.value.trim(),fullname.value.trim(), username.value.trim(), password.value.trim())
         }
@@ -282,27 +297,4 @@ fun EmailInput(emailState: MutableState<String>, label:String) {
             .fillMaxWidth()
             .padding(8.dp)
     )
-}
-
-@Composable
-fun InputField(
-    valueState: MutableState<String>,
-    labelId: String,
-    keyboardType: KeyboardType,
-    isSingleLine: Boolean = true
-) {
-    TextField(
-        value = valueState.value,
-        onValueChange = { valueState.value = it },
-        label = { Text(text = labelId,color=Color.White)},
-        singleLine = isSingleLine,
-        modifier = Modifier
-            .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-            .fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType
-        ),
-        textStyle = LocalTextStyle.current.copy(color = Color.White)
-    )
-
 }

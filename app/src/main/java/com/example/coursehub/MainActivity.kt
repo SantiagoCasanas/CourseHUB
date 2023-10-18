@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.coursehub.ui.theme.CourseHUBTheme
-import com.example.coursehub.users.SignUpScreen
+import com.example.coursehub.navigation.CourseHubNavigate
 
 
 class MainActivity : ComponentActivity() {
@@ -23,13 +23,20 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = colorResource(id = R.color.Backgorund_down)
                 ) {
-                    SignUpScreen()
+                    CourseHubApp()
                 }
             }
         }
     }
-}
 
+}
+@Composable
+fun CourseHubApp(){
+    Surface(modifier = Modifier
+        ) {
+        CourseHubNavigate()
+    }
+}
 @Preview(showBackground = true)
 @Composable
 fun CoursePreview() {
@@ -38,7 +45,6 @@ fun CoursePreview() {
             modifier = Modifier.fillMaxSize(),
             color = colorResource(id = R.color.Background_up)
         ) {
-            SignUpScreen()
         }
     }
 }
