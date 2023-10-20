@@ -10,7 +10,7 @@ data class User(
     val email: String,
     @SerializedName("full_name")
     val fullName:String,
-    val password:String
+    val password:String?
 )
 
 data class LoginUser(

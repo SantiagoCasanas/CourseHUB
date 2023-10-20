@@ -33,13 +33,15 @@ interface UserService{
     suspend fun loginUser(@Body loginRequest: LoginUser): LoginResponse
 }
 
-suspend fun sendCreateUserData(email:String,fullName:String,username:String,password:String){
-    try {
+suspend fun sendCreateUserData(email:String,fullName:String,username:String,password:String):Result<User> {
+    return try {
         val user = User(username, email, fullName, password)
         val response = userService.createUser(user)
-        Log.d("User created:", "${response.email}")
+        //Log.d("User created:", "${response.username}")
+        Result.success(response)
     } catch (e: Exception) {
-        Log.d("Signup error:","${e.message}")
+        //Log.d("Signup error:","${e.message}")
+        Result.failure(e)
     }
 }
 

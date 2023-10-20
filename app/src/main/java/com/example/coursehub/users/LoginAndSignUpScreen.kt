@@ -134,7 +134,7 @@ fun SignUpScreen(
 }
 @Composable
 fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) -> Unit = { _, _ -> }) {
-    val email = rememberSaveable { mutableStateOf("") }
+    val username = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
     val textPass= stringResource(id =R.string.password_advice )
@@ -147,7 +147,7 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
     ) {
 
         // Entrada de Email
-        EmailInput(label= stringResource(id = R.string.email),emailState = email)
+        UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
 
         // Entrada de Password
 
@@ -166,7 +166,7 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
 
         // Botón de envío
         SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)) {
-            onDone(email.value.trim(), password.value.trim())
+            onDone(username.value.trim(), password.value.trim())
         }
     }
 }

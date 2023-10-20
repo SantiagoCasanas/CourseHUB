@@ -95,7 +95,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     // Dependencias de pruebas unitarias
     testImplementation ("junit:junit:4.13.2")
-    testImplementation ("org.mockito:mockito-core:3.12.4")
+    testImplementation ("org.mockito:mockito-core:2.24.5")
     androidTestImplementation ( "androidx.compose.ui:ui-test-junit4:1.5.4")
     androidTestImplementation ("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("org.mockito:mockito-android:2.24.5")
 }
