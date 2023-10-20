@@ -137,6 +137,7 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
     val email = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
+    val textPass= stringResource(id =R.string.password_advice )
 
     Column(
         horizontalAlignment = Alignment.Start,
@@ -149,6 +150,14 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
         EmailInput(label= stringResource(id = R.string.email),emailState = email)
 
         // Entrada de Password
+
+        if (password.value.length < 8) {
+            Text(
+                text = textPass,
+                color = Color.Red
+            )
+        }
+
         PasswordInput(
             passwordSate = password,
             labelId = stringResource(id = R.string.password),
@@ -176,6 +185,8 @@ fun UserCreateForm(isCreatedAccount: Boolean = false, onDone: (String,String, St
     }
     val fullname = rememberSaveable { mutableStateOf("") }
     val username = rememberSaveable { mutableStateOf("") }
+    val textPass= stringResource(id =R.string.password_advice )
+
     Column (horizontalAlignment = Alignment.CenterHorizontally,
         ){
         EmailInput(label=stringResource(id = R.string.email),
@@ -189,6 +200,12 @@ fun UserCreateForm(isCreatedAccount: Boolean = false, onDone: (String,String, St
             label = stringResource(id = R.string.username),
             fieldState = username
         )
+        if (password.value.length < 8) {
+            Text(
+                text = textPass,
+                color = Color.Red
+            )
+        }
         PasswordInput(
             passwordSate = password,
             labelId = stringResource(id = R.string.password),
