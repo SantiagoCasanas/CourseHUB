@@ -1,5 +1,6 @@
 package com.example.coursehub.users
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,12 +43,13 @@ import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
 import androidx.navigation.NavController
 import com.example.coursehub.navigation.Screens
+import com.example.coursehub.network.Login
+import com.example.coursehub.network.TokenManager
 import com.example.coursehub.network.sendCreateUserData
-import com.example.coursehub.network.sendLoginUserData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import android.content.Context
+
 
 
 @Composable
@@ -55,11 +57,12 @@ fun SignUpScreen(
     navController: NavController,
     context: Context = LocalContext.current
 ) {
+    val login = Login()
+    login.tokenManager = TokenManager(context)
     val showLoginForm = rememberSaveable {
         mutableStateOf(true)
     }
     val text = if (showLoginForm.value) stringResource(id = R.string.Log_in) else stringResource(id = R.string.Sign_up)
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -72,7 +75,7 @@ fun SignUpScreen(
             Text(
                 text = text,
                 fontSize = 40.sp,
-                color = Color.White,
+                color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
             )
         }
@@ -92,9 +95,10 @@ fun SignUpScreen(
                     UserLoginForm(isCreatedAccount = false) { username, password ->
                         runBlocking {
                             launch(Dispatchers.IO) {
-                                sendLoginUserData(context, username,password){
+                                login.sendLoginUserData(username,password){
                                     navController.navigate(Screens.HomeScreen.name)
                                 }
+
                             }
                         }
                     }

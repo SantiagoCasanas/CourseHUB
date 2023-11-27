@@ -23,3 +23,11 @@ data class LoginResponse(
     val refresh: String,
     val access:String
 )
+
+data class UserInfo(
+    val id: String,
+    val username: String,
+    val email: String,
+    @SerializedName("full_name")
+    val fullName:String,
+)

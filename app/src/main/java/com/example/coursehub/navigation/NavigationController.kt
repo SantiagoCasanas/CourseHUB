@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.coursehub.users.GreetingImage
 import com.example.coursehub.users.SignUpScreen
+import com.example.coursehub.users.profileView
 
 @Composable
 fun CourseHubNavigate(){
@@ -16,6 +17,9 @@ fun CourseHubNavigate(){
         }
         composable(Screens.HomeScreen.name){
             GreetingImage(navController = navController)
+        }
+        composable(Screens.UserProfile.name){
+            profileView(navController = navController)
         }
     }
 }

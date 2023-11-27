@@ -14,9 +14,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.content.SharedPreferences
+import androidx.compose.ui.platform.LocalContext
+import com.example.coursehub.users.UserInfo
+import okhttp3.OkHttpClient
+import retrofit2.create
+import retrofit2.http.GET
+import javax.inject.Inject
 
 private const val BASE_URL = "https://jesus.pythonanywhere.com/"
-private const val PREFS_NAME = "CourseHUB_prefs"
+const val PREFS_NAME = "CourseHUB_prefs"
+
 
 private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
@@ -24,13 +31,62 @@ private val retrofit = Retrofit.Builder()
     .build()
 
 val  userService = retrofit.create(UserService::class.java)
+class Login{
+    @Inject
+    lateinit var tokenManager: TokenManager
+
+    suspend fun sendLoginUserData( username: String, password: String, home:()-> Unit){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val loginUser = LoginUser(username, password)
+                val response = userService.loginUser(loginUser)
+                withContext(Dispatchers.Main) {
+                    Log.d("you're logged in", "${response.access}")
+                    tokenManager.saveAccessToken(response.access)
+                    Log.d("Token saved","${tokenManager.getAccessToken()}")
+                    home()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.d("Connection error", "${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun providesAuth(): Retrofit{
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(tokenManager.getAccessToken() ?: ""))
+            .build()
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .baseUrl(BASE_URL)
+            .build()
+    }
+
+    suspend fun getUserInfo(): UserInfo? {
+        val service = providesAuth().create(UserService::class.java)
+        return try {
+            Log.d("user:", "${service.userRetrieveInfo().toString()}")
+            service.userRetrieveInfo()
+        }catch (e: Exception){
+            Log.d("Unauthorized:", "${e.message}")
+            null
+        }
+    }
+
+}
 
 interface UserService{
-    @POST("user/create/")
+    @POST("user/create")
     suspend fun createUser(@Body user: User): User
 
-    @POST("user/login/")
+    @POST("user/login")
     suspend fun loginUser(@Body loginRequest: LoginUser): LoginResponse
+
+    @GET("user/own_info")
+    suspend fun userRetrieveInfo(): UserInfo
 }
 
 suspend fun sendCreateUserData(email:String,fullName:String,username:String,password:String):Result<User> {
@@ -43,49 +99,6 @@ suspend fun sendCreateUserData(email:String,fullName:String,username:String,pass
         //Log.d("Signup error:","${e.message}")
         Result.failure(e)
     }
-}
-
-suspend fun sendLoginUserData(context: Context, username: String, password: String, home:()-> Unit){
-    GlobalScope.launch(Dispatchers.IO) {
-        try {
-            val loginUser = LoginUser(username, password)
-            val response = userService.loginUser(loginUser)
-            withContext(Dispatchers.Main) {
-                Log.d("you're logged in", "${response.access}")
-                saveAccessToken(context,response.access)
-                Log.d("Token saved","${getAccessToken(context)}")
-                home()
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                Log.d("Connection error", "${e.message}")
-            }
-        }
-    }
-}
-
-private fun saveAccessToken(context: Context, accessToken: String) {
-    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val editor = sharedPreferences.edit()
-    editor.putString("access_token", accessToken)
-    editor.apply()
-}
-
-private fun getAccessToken(context: Context): String? {
-    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    return sharedPreferences.getString("access_token", null)
-}
-
-private fun saveRefreshToken(context: Context, refreshToken: String) {
-    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val editor = sharedPreferences.edit()
-    editor.putString("refresh_token", refreshToken)
-    editor.apply()
-}
-
-private fun getRefreshToken(context: Context): String? {
-    val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    return sharedPreferences.getString("refresh_token", null)
 }
 
 

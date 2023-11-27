@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -10,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.coursehub"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -35,7 +37,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
     buildFeatures {
         compose = true
@@ -48,6 +50,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+kotlin {
+    jvmToolchain(8)
 }
 
 dependencies {
@@ -66,10 +71,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    //Firebase services
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
 
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.navigation:navigation-runtime-ktx:2.7.4")
@@ -99,4 +100,8 @@ dependencies {
     androidTestImplementation ( "androidx.compose.ui:ui-test-junit4:1.5.4")
     androidTestImplementation ("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("org.mockito:mockito-android:2.24.5")
+
+    //hilt
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
 }
