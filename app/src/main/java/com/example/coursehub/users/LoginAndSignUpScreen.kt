@@ -1,6 +1,12 @@
 package com.example.coursehub.users
 
+
 import android.content.Context
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.LocalTextStyle
@@ -26,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,14 +50,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import com.example.coursehub.navigation.Screens
-import com.example.coursehub.network.Login
+import com.example.coursehub.network.Auth
 import com.example.coursehub.network.TokenManager
 import com.example.coursehub.network.sendCreateUserData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-
+import java.io.File
 
 
 @Composable
@@ -57,7 +66,7 @@ fun SignUpScreen(
     navController: NavController,
     context: Context = LocalContext.current
 ) {
-    val login = Login()
+    val login = Auth()
     login.tokenManager = TokenManager(context)
     val showLoginForm = rememberSaveable {
         mutableStateOf(true)
@@ -103,13 +112,12 @@ fun SignUpScreen(
                         }
                     }
                 } else {
-                    UserCreateForm(isCreatedAccount = true) { email, fullName, username,password ->
+                    UserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
                         runBlocking {
                             launch(Dispatchers.IO) {
-                                sendCreateUserData(email,fullName,username,password)
+                                sendCreateUserData(email,fullName,username,password, picture)
                             }
                         }
-                        showLoginForm.value = true
                     }
                 }
                 Spacer(modifier = Modifier.height(15.dp))
@@ -177,52 +185,96 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
 
 
 @Composable
-fun UserCreateForm(isCreatedAccount: Boolean = false, onDone: (String,String, String, String) -> Unit ={email,fullname, username, pwd->}) {
-    val email = rememberSaveable {
-        mutableStateOf("")
-    }
-    val password = rememberSaveable {
-        mutableStateOf("")
-    }
-    val passwordVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val fullname = rememberSaveable { mutableStateOf("") }
-    val username = rememberSaveable { mutableStateOf("") }
-    val textPass= stringResource(id =R.string.password_advice )
+fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
+    val emailState = rememberSaveable { mutableStateOf("") }
+    val passwordState = rememberSaveable { mutableStateOf("") }
+    val passwordVisible = rememberSaveable { mutableStateOf(false) }
+    val fullNameState = rememberSaveable { mutableStateOf("") }
+    val userNameState = rememberSaveable { mutableStateOf("") }
+    val textPass = stringResource(id = R.string.password_advice)
+    val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
 
-    Column (horizontalAlignment = Alignment.CenterHorizontally,
-        ){
-        EmailInput(label=stringResource(id = R.string.email),
-            emailState = email
-        )
-        NameInput(
-            label = stringResource(id = R.string.fullname),
-            fieldState = fullname
-        )
-        UsernameInput(
-            label = stringResource(id = R.string.username),
-            fieldState = username
-        )
-        if (password.value.length < 8) {
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    file.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                selectedImageUri.value = uri
+                // Enviar la Uri al callback, incluso si es nula
+                onDone(
+                    emailState.value.trim(),
+                    fullNameState.value.trim(),
+                    userNameState.value.trim(),
+                    passwordState.value.trim(),
+                    file// Enviar la Uri al callback
+                )
+            } catch (e: Exception) {
+                // Manejar errores si la conversión de la Uri a archivo falla
+                // Aquí podrías mostrar un mensaje de error o manejar la excepción según sea necesario
+                Log.d("UserCreateForm", "error: ${e.message}")
+            }
+        }
+    }
+
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Log.d("UserCreateForm", "Valor de selectedImageUri: ${selectedImageUri.value}")
+        selectedImageUri.value?.let { uri ->
+            Image(
+                painter = rememberImagePainter(uri),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(shape = RoundedCornerShape(4.dp))
+                    .background(Color.LightGray)
+            )
+        }
+        Button(
+            onClick = {
+                launcher.launch("image/*")
+            }
+        ) {
+            Text("Select Image")
+        }
+        EmailInput(label = stringResource(id = R.string.email), emailState = emailState)
+        NameInput(label = stringResource(id = R.string.fullname), fieldState = fullNameState)
+        UsernameInput(label = stringResource(id = R.string.username), fieldState = userNameState)
+
+        if (passwordState.value.length < 8) {
             Text(
                 text = textPass,
                 color = Color.Red
             )
         }
+
         PasswordInput(
-            passwordSate = password,
+            passwordSate = passwordState,
             labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
-        SubmitButton(
-            textId = if(isCreatedAccount)stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
-        ){
-            onDone(email.value.trim(),fullname.value.trim(), username.value.trim(), password.value.trim())
-        }
 
+        SubmitButton(
+            textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
+        ) {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            onDone(
+                emailState.value.trim(),
+                fullNameState.value.trim(),
+                userNameState.value.trim(),
+                passwordState.value.trim(),
+                file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
+            )
+        }
     }
 }
+
+
 
 @Composable
 fun UsernameInput(label: String, fieldState: MutableState<String>) {
