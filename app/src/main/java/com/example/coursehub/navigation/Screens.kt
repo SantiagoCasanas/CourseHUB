@@ -3,5 +3,6 @@ package com.example.coursehub.navigation
 enum class Screens {
     LoginAndSignUpScreen,
     HomeScreen,
-    UserProfile
+    UserProfile,
+    UpdateScreen
 }

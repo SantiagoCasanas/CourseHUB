@@ -54,52 +54,43 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.rememberImagePainter
 import java.io.File
 import androidx.compose.foundation.Image
-import androidx.compose.material.icons.filled.ArrowForward
 import coil.compose.rememberImagePainter
 
 @Composable
-fun profileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+fun profileView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
     val info = Auth()
     info.tokenManager = TokenManager(context)
-
+    val userInfo = remember { runBlocking { info.getUserInfo() } }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = colorResource(id = R.color.Backgorund_down))
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp)
-                .padding(bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    ){
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(40.dp)){
             Text(
                 text = stringResource(id = R.string.account),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
             )
-
-            // Espacio adicional entre el texto y los botones
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ButtonWithArrow(
-                text = "Edit Profile",
-                onClick = { navController.navigate(Screens.UpdateScreen.name) }
-            )
-
-            ButtonWithArrow(
-                text = "Settings",
-                onClick = { /* TODO: Acción para Settings */ }
-            )
-
-            ButtonWithArrow(
-                text = "Help",
-                onClick = { /* TODO: Acción para Help */ }
-            )
+        }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 130.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            userupdateForm2(userInfo = userInfo, context){ email, fullName, username, picture ->
+                runBlocking {
+                    launch(Dispatchers.IO) {
+                        info.update_info(username,email,fullName, picture)
+                    }
+                }
+            }
         }
     }
+    
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
@@ -191,36 +182,162 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
 }
 
 @Composable
-fun ButtonWithArrow(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .weight(1f)
-                .background(color = colorResource(id = R.color.Backgorund_down)) // Hacer el fondo transparente
-        ) {
-            Text(
-                text = text,
-                fontSize = 25.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 16.dp)
-            )
+fun userUpdateForm(
+    userInfo: UserInfo?,
+    onDone: (String,String, String) -> Unit ={email,fullname, username->}
+) {
+    val url = userInfo!!.profilePicture
+
+    val email = rememberSaveable {
+        mutableStateOf("${userInfo!!.email}")
+    }
+
+    val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
+    val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
+
+    Column (horizontalAlignment = Alignment.CenterHorizontally,
+    ){
+        Image(
+            painter = rememberImagePainter(url),
+            contentDescription = null
+        )
+        EmailInput(label=stringResource(id = R.string.email),
+            emailState = email
+        )
+        NameInput(
+            label = stringResource(id = R.string.fullname),
+            fieldState = fullname
+        )
+        UsernameInput(
+            label = stringResource(id = R.string.username),
+            fieldState = username
+        )
+        SubmitButton(
+            textId = "Edit Account"
+        ){
+            onDone(email.value.trim(),fullname.value.trim(), username.value.trim())
         }
 
-        // Flecha a la derecha
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            contentDescription = null,
-            tint = colorResource(id = R.color.white),
-            modifier = Modifier
-                .size(24.dp)
-        )
     }
 }
+
+@Composable
+fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, String, String, File?) -> Unit = { email, fullname, username, picture -> }) {
+    val email = rememberSaveable {
+        mutableStateOf("${userInfo!!.email}")
+    }
+    val url = userInfo!!.profilePicture
+    val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
+    val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
+
+    val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
+    val defaultImageUri = url// URI de la imagen predeterminada
+
+    val updatedUri by rememberUpdatedState(selectedImageUri.value)
+
+    val finalUri = updatedUri ?: defaultImageUri
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    file.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                selectedImageUri.value = uri
+                // Enviar la Uri al callback, incluso si es nula
+                onDone(
+                    email.value.trim(),
+                    fullname.value.trim(),
+                    username.value.trim(),
+                    file// Enviar la Uri al callback
+                )
+            } catch (e: Exception) {
+                // Manejar errores si la conversión de la Uri a archivo falla
+                // Aquí podrías mostrar un mensaje de error o manejar la excepción según sea necesario
+                Log.d("UserCreateForm", "error: ${e.message}")
+            }
+        }
+    }
+
+
+    Column (horizontalAlignment = Alignment.CenterHorizontally,
+    ){
+        Image(
+            painter = rememberImagePainter(finalUri),
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp)
+                .clip(shape = RoundedCornerShape(4.dp))
+                .background(Color.LightGray)
+        )
+        Button(
+            onClick = {
+                launcher.launch("image/*")
+            }
+        ) {
+            Text("Change Image")
+        }
+        EmailInput(label=stringResource(id = R.string.email),
+            emailState = email
+        )
+        NameInput(
+            label = stringResource(id = R.string.fullname),
+            fieldState = fullname
+        )
+        UsernameInput(
+            label = stringResource(id = R.string.username),
+            fieldState = username
+        )
+        SubmitButton(
+            textId = "Edit Account"
+        ) {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            onDone(
+                email.value.trim(),
+                fullname.value.trim(),
+                username.value.trim(),
+                file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
+            )
+        }
+    }
+}
+
+
+@Composable
+fun UpdateInfoScreen() {
+    var showDialog by remember { mutableStateOf(false) }
+    var isSuccess by remember { mutableStateOf(false) }
+
+
+    if (showDialog) {
+        if (isSuccess) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text(text = "¡Operación exitosa!") },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cerrar")
+                    }
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text(text = "Error al actualizar") },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cerrar")
+                    }
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
