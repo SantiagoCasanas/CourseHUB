@@ -8,6 +8,7 @@ import com.example.coursehub.users.GreetingImage
 import com.example.coursehub.users.SignUpScreen
 import com.example.coursehub.users.profileView
 import com.example.coursehub.users.ProfileViewUser
+import com.example.coursehub.users.SettingsView
 
 @Composable
 fun CourseHubNavigate(){
@@ -24,6 +25,9 @@ fun CourseHubNavigate(){
         }
         composable(Screens.UpdateScreen.name){
             profileView(navController = navController)
+        }
+        composable(Screens.SettingsScreen.name){
+            SettingsView(navController = navController)
         }
     }
 }

@@ -58,7 +58,7 @@ import androidx.compose.material3.ButtonDefaults
 import coil.compose.rememberImagePainter
 
 @Composable
-fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+fun SettingsView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +72,7 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(id = R.string.account),
+                text = stringResource(id = R.string.settings),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
@@ -82,27 +82,13 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
             Spacer(modifier = Modifier.height(50.dp))
 
             ButtonWithArrow(
-                text = stringResource(id = R.string.edit),
-                onClick = { navController.navigate(Screens.UpdateScreen.name) }
+                text = stringResource(id = R.string.delete),
+                onClick = {  /* TODO: Acción para Settings */  }
             )
-
+            Spacer(modifier = Modifier.height(25.dp))
             ButtonWithArrow(
-                text = stringResource(id = R.string.settings),
-                onClick = { navController.navigate(Screens.SettingsScreen.name) }
-            )
-
-            ButtonWithArrow(
-                text = stringResource(id = R.string.help),
-                onClick = { /* TODO: Acción para Help */ }
-            )
-
-            // Espacio adicional al final
-            Spacer(modifier = Modifier.height(200.dp))
-
-            // Botón de cierre de sesión
-            LogoutButton(
-                textId = stringResource(id = R.string.logout),
-                onClick = { /* TODO: Acción para cerrar sesión */ }
+                text = stringResource(id = R.string.inactivate),
+                onClick = { /* TODO: Acción para Settings */ }
             )
         }
     }
@@ -202,90 +188,3 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
     }
 }
 
-@Composable
-fun ButtonWithArrow(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Backgorund_down))
-
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = text,
-                    fontSize = 25.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = null,
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(24.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun LogoutButton(textId: String, onClick: () -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = stringResource(id = R.string.confirm))},
-            text = { Text(text = stringResource(id = R.string.confirm_question)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                        onClick()
-                    }
-                ) {
-                    Text(text = stringResource(id = R.string.si))
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog = false }
-                ) {
-                    Text(text = stringResource(id = R.string.no))
-                }
-            },
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-    Button(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(1f)
-            .height(48.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
-    ) {
-        Text(
-            text = textId,
-            fontSize = 25.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}

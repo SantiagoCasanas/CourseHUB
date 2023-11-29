@@ -11,6 +11,8 @@
     <string name="password_advice">8 characters at least</string>
     <string name="account">Account</string>
     <string name="logout">Log out</string>
+    <string name="delete">Delete Account</string>
+    <string name="inactivate">Inactivate Account</string>
     <string name="edit">Edit Profile</string>
     <string name="settings">Settings</string>
     <string name="help">Help</string>
