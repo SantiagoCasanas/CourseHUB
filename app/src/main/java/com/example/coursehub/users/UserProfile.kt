@@ -2,6 +2,7 @@ package com.example.coursehub.users
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.material3.Button
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -53,15 +53,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import coil.compose.rememberImagePainter
 import java.io.File
-import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.ButtonDefaults
 import coil.compose.rememberImagePainter
 
 @Composable
-fun profileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
-    val info = Auth()
-    info.tokenManager = TokenManager(context)
-
+fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -82,24 +79,35 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
             )
 
             // Espacio adicional entre el texto y los botones
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             ButtonWithArrow(
-                text = "Edit Profile",
+                text = stringResource(id = R.string.edit),
                 onClick = { navController.navigate(Screens.UpdateScreen.name) }
             )
 
             ButtonWithArrow(
-                text = "Settings",
+                text = stringResource(id = R.string.settings),
                 onClick = { /* TODO: Acción para Settings */ }
             )
 
             ButtonWithArrow(
-                text = "Help",
+                text = stringResource(id = R.string.help),
                 onClick = { /* TODO: Acción para Help */ }
+            )
+
+            // Espacio adicional al final
+            Spacer(modifier = Modifier.height(200.dp))
+
+            // Botón de cierre de sesión
+            LogoutButton(
+                textId = stringResource(id = R.string.logout),
+                onClick = { /* TODO: Acción para cerrar sesión */ }
             )
         }
     }
+
+    // Row con iconos de navegación
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
@@ -107,6 +115,7 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
             .height(100.dp),
         verticalAlignment = Alignment.Bottom
     ) {
+        // Iconos de navegación
         IconButton(onClick = { navController.navigate(Screens.HomeScreen.name) },
             modifier = Modifier
                 .padding(8.dp)) {
@@ -127,7 +136,8 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
-        IconButton(onClick = { /*TODO*/ },
+
+        IconButton(onClick = { /* TODO: Acción para Course */ },
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -147,7 +157,8 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
-        IconButton(onClick = { /*TODO*/ },
+
+        IconButton(onClick = { /* TODO: Acción para Search */ },
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -167,6 +178,7 @@ fun profileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
+
         IconButton(onClick = { navController.navigate(Screens.UserProfile.name) },
             modifier = Modifier
                 .padding(8.dp)) {
@@ -202,25 +214,78 @@ fun ButtonWithArrow(text: String, onClick: () -> Unit) {
         Button(
             onClick = onClick,
             modifier = Modifier
-                .weight(1f)
-                .background(color = colorResource(id = R.color.Backgorund_down)) // Hacer el fondo transparente
-        ) {
-            Text(
-                text = text,
-                fontSize = 25.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-        }
+                .fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Backgorund_down))
 
-        // Flecha a la derecha
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            contentDescription = null,
-            tint = colorResource(id = R.color.white),
-            modifier = Modifier
-                .size(24.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = text,
+                    fontSize = 25.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowForward,
+                    contentDescription = null,
+                    tint = colorResource(id = R.color.white),
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LogoutButton(textId: String, onClick: () -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = stringResource(id = R.string.confirm))},
+            text = { Text(text = stringResource(id = R.string.confirm_question)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        onClick()
+                    }
+                ) {
+                    Text(text = stringResource(id = R.string.si))
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog = false }
+                ) {
+                    Text(text = stringResource(id = R.string.no))
+                }
+            },
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+    Button(
+        onClick = { showDialog = true },
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth(1f)
+            .height(48.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
+    ) {
+        Text(
+            text = textId,
+            fontSize = 25.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
         )
     }
 }
