@@ -2,6 +2,8 @@
     <string name="app_name">CourseHUB</string>
     <string name="No_account">I do not have an account</string>
     <string name="Log_in">Log In</string>
+    <string name="Log">Successful Login</string>
+    <string name="Sing">Successful Singup</string>
     <string name="Sign_up">Sign Up</string>
     <string name="Have_account">I already have an account</string>
     <string name="username">Username</string>
@@ -18,7 +20,40 @@
     <string name="help">Help</string>
     <string name="si">Si</string>
     <string name="no">No</string>
+    <string name="terms">Terms and Conditions</string>
+    <string name="politics">Privacy Policy</string>
+    <string name="politics_text">Your privacy is important to us. Our Privacy Policy explains how we collect, use, share, and protect your personal information. By using our application, you agree to our privacy practices. Be sure to review our complete Privacy Policy at courseHub.com.</string>
+    <string name="data">Authorization for Processing Personal Data</string>
+    <string name="data_text">By registering in our application, you authorize the processing of your personal data in accordance with our Privacy Policy. This includes the collection, storage, use, and sharing of your data with third parties to the extent necessary to provide you with our services. You can withdraw your authorization at any time, as outlined in our Privacy Policy.</string>
     <string name="forgot_password">Forgot your password?</string>
     <string name="confirm">Confirmar cierre de sesión</string>
     <string name="confirm_question">¿Estás seguro de que deseas cerrar la sesión?</string>
+    <string name="terminos_y_condiciones">Responsible Use:
+Use the application in accordance with the law and ethically.
+
+Registration:
+Provide accurate information when registering and secure your account.
+
+Intellectual Property:
+Respecting our intellectual property rights is crucial.
+
+User Content:
+You retain ownership of your content, but permit its use in the application.
+
+Privacy:
+Read our Privacy Policy to understand how we handle your data.
+
+Modifications:
+We reserve the right to make changes to the application and will notify you of significant changes.
+
+Termination:
+We may terminate your account in case of a violation of the terms.
+
+Limited Liability:
+We are not responsible for indirect or consequential damages.
+
+Applicable Law:
+These terms are governed by the laws of [country], and any dispute will be resolved through arbitration.
+
+Enjoy the application and contact us if you have any questions!:</string>
 </resources>

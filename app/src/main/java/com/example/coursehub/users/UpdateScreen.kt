@@ -53,11 +53,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import coil.compose.rememberImagePainter
 import java.io.File
-import androidx.compose.foundation.Image
 import coil.compose.rememberImagePainter
 
 @Composable
-fun profileView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+fun ProfileView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
     val info = Auth()
     info.tokenManager = TokenManager(context)
     val userInfo = remember { runBlocking { info.getUserInfo() } }
@@ -213,7 +212,7 @@ fun userUpdateForm(
             fieldState = username
         )
         SubmitButton(
-            textId = "Edit Account"
+            textId = "Edit Account",isEnabled = true
         ){
             onDone(email.value.trim(),fullname.value.trim(), username.value.trim())
         }
@@ -293,7 +292,7 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
             fieldState = username
         )
         SubmitButton(
-            textId = "Edit Account"
+            textId = "Edit Account",isEnabled = true
         ) {
             val file = File(context.filesDir, "temp_image")
             Log.d("File","${file}")

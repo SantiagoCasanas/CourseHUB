@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.coursehub.users.GreetingImage
 import com.example.coursehub.users.SignUpScreen
-import com.example.coursehub.users.profileView
+import com.example.coursehub.users.ProfileView
 import com.example.coursehub.users.ProfileViewUser
 import com.example.coursehub.users.SettingsView
 
@@ -24,7 +24,7 @@ fun CourseHubNavigate(){
             ProfileViewUser(navController = navController)
         }
         composable(Screens.UpdateScreen.name){
-            profileView(navController = navController)
+            ProfileView(navController = navController)
         }
         composable(Screens.SettingsScreen.name){
             SettingsView(navController = navController)
