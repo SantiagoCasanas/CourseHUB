@@ -2,7 +2,6 @@ package com.example.coursehub.users
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.material3.Button
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -53,61 +53,43 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import coil.compose.rememberImagePainter
 import java.io.File
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.ButtonDefaults
 import coil.compose.rememberImagePainter
 
 @Composable
-fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+fun ProfileView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+    val info = Auth()
+    info.tokenManager = TokenManager(context)
+    val userInfo = remember { runBlocking { info.getUserInfo() } }
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = colorResource(id = R.color.Backgorund_down))
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp)
-                .padding(bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    ){
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(40.dp)){
             Text(
                 text = stringResource(id = R.string.account),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
             )
-
-            // Espacio adicional entre el texto y los botones
-            Spacer(modifier = Modifier.height(50.dp))
-
-            ButtonWithArrow(
-                text = stringResource(id = R.string.edit),
-                onClick = { navController.navigate(Screens.UpdateScreen.name) }
-            )
-
-            ButtonWithArrow(
-                text = stringResource(id = R.string.settings),
-                onClick = { navController.navigate(Screens.SettingsScreen.name) }
-            )
-
-            ButtonWithArrow(
-                text = stringResource(id = R.string.help),
-                onClick = { /* TODO: Acción para Help */ }
-            )
-
-            // Espacio adicional al final
-            Spacer(modifier = Modifier.height(200.dp))
-
-            // Botón de cierre de sesión
-            LogoutButton(
-                textId = stringResource(id = R.string.logout),
-                onClick = { /* TODO: Acción para cerrar sesión */ }
-            )
+        }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 130.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            userupdateForm2(userInfo = userInfo, context){ email, fullName, username, picture ->
+                runBlocking {
+                    launch(Dispatchers.IO) {
+                        info.update_info(username,email,fullName, picture)
+                    }
+                }
+            }
         }
     }
-
-    // Row con iconos de navegación
+    
     Row(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
@@ -115,7 +97,6 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
             .height(100.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-        // Iconos de navegación
         IconButton(onClick = { navController.navigate(Screens.HomeScreen.name) },
             modifier = Modifier
                 .padding(8.dp)) {
@@ -136,8 +117,7 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
-
-        IconButton(onClick = { /* TODO: Acción para Course */ },
+        IconButton(onClick = { /*TODO*/ },
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -157,8 +137,7 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
-
-        IconButton(onClick = { /* TODO: Acción para Search */ },
+        IconButton(onClick = { /*TODO*/ },
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -178,7 +157,6 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
                 )
             }
         }
-
         IconButton(onClick = { navController.navigate(Screens.UserProfile.name) },
             modifier = Modifier
                 .padding(8.dp)) {
@@ -203,89 +181,162 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
 }
 
 @Composable
-fun ButtonWithArrow(text: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Backgorund_down))
+fun userUpdateForm(
+    userInfo: UserInfo?,
+    onDone: (String,String, String) -> Unit ={email,fullname, username->}
+) {
+    val url = userInfo!!.profilePicture
 
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = text,
-                    fontSize = 25.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = null,
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(24.dp)
-                )
-            }
+    val email = rememberSaveable {
+        mutableStateOf("${userInfo!!.email}")
+    }
+
+    val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
+    val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
+
+    Column (horizontalAlignment = Alignment.CenterHorizontally,
+    ){
+        Image(
+            painter = rememberImagePainter(url),
+            contentDescription = null
+        )
+        EmailInput(label=stringResource(id = R.string.email),
+            emailState = email
+        )
+        NameInput(
+            label = stringResource(id = R.string.fullname),
+            fieldState = fullname
+        )
+        UsernameInput(
+            label = stringResource(id = R.string.username),
+            fieldState = username
+        )
+        SubmitButton(
+            textId = "Edit Account",isEnabled = true
+        ){
+            onDone(email.value.trim(),fullname.value.trim(), username.value.trim())
         }
+
     }
 }
 
 @Composable
-fun LogoutButton(textId: String, onClick: () -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = stringResource(id = R.string.confirm))},
-            text = { Text(text = stringResource(id = R.string.confirm_question)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDialog = false
-                        onClick()
-                    }
-                ) {
-                    Text(text = stringResource(id = R.string.si))
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showDialog = false }
-                ) {
-                    Text(text = stringResource(id = R.string.no))
-                }
-            },
-            modifier = Modifier.padding(16.dp)
-        )
+fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, String, String, File?) -> Unit = { email, fullname, username, picture -> }) {
+    val email = rememberSaveable {
+        mutableStateOf("${userInfo!!.email}")
     }
-    Button(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(1f)
-            .height(48.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
-    ) {
-        Text(
-            text = textId,
-            fontSize = 25.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
+    val url = userInfo!!.profilePicture
+    val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
+    val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
+
+    val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
+    val defaultImageUri = url// URI de la imagen predeterminada
+
+    val updatedUri by rememberUpdatedState(selectedImageUri.value)
+
+    val finalUri = updatedUri ?: defaultImageUri
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    file.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                selectedImageUri.value = uri
+                // Enviar la Uri al callback, incluso si es nula
+                onDone(
+                    email.value.trim(),
+                    fullname.value.trim(),
+                    username.value.trim(),
+                    file// Enviar la Uri al callback
+                )
+            } catch (e: Exception) {
+                // Manejar errores si la conversión de la Uri a archivo falla
+                // Aquí podrías mostrar un mensaje de error o manejar la excepción según sea necesario
+                Log.d("UserCreateForm", "error: ${e.message}")
+            }
+        }
+    }
+
+
+    Column (horizontalAlignment = Alignment.CenterHorizontally,
+    ){
+        Image(
+            painter = rememberImagePainter(finalUri),
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp)
+                .clip(shape = RoundedCornerShape(4.dp))
+                .background(Color.LightGray)
         )
+        Button(
+            onClick = {
+                launcher.launch("image/*")
+            }
+        ) {
+            Text("Change Image")
+        }
+        EmailInput(label=stringResource(id = R.string.email),
+            emailState = email
+        )
+        NameInput(
+            label = stringResource(id = R.string.fullname),
+            fieldState = fullname
+        )
+        UsernameInput(
+            label = stringResource(id = R.string.username),
+            fieldState = username
+        )
+        SubmitButton(
+            textId = "Edit Account",isEnabled = true
+        ) {
+            val file = File(context.filesDir, "temp_image")
+            Log.d("File","${file}")
+            onDone(
+                email.value.trim(),
+                fullname.value.trim(),
+                username.value.trim(),
+                file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
+            )
+        }
     }
 }
+
+
+@Composable
+fun UpdateInfoScreen() {
+    var showDialog by remember { mutableStateOf(false) }
+    var isSuccess by remember { mutableStateOf(false) }
+
+
+    if (showDialog) {
+        if (isSuccess) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text(text = "¡Operación exitosa!") },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cerrar")
+                    }
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text(text = "Error al actualizar") },
+                confirmButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cerrar")
+                    }
+                },
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+

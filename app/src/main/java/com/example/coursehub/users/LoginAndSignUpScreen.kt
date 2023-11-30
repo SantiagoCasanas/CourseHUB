@@ -4,6 +4,8 @@ package com.example.coursehub.users
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -12,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,33 +22,57 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
@@ -56,6 +83,7 @@ import com.example.coursehub.network.Auth
 import com.example.coursehub.network.TokenManager
 import com.example.coursehub.network.sendCreateUserData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -96,12 +124,15 @@ fun SignUpScreen(
                 .clip(shape = RoundedCornerShape(15.dp))
         ) {
             Column(
+                modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Spacer(modifier = Modifier.height(15.dp))
                 if (showLoginForm.value) {
-                    UserLoginForm(isCreatedAccount = false) { username, password ->
+                    UserLoginForm(isCreatedAccount = false,context) { username, password ->
                         runBlocking {
                             launch(Dispatchers.IO) {
                                 login.sendLoginUserData(username,password){
@@ -112,30 +143,55 @@ fun SignUpScreen(
                         }
                     }
                 } else {
-                    UserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
-                        runBlocking {
-                            launch(Dispatchers.IO) {
-                                sendCreateUserData(email,fullName,username,password, picture)
+                    ScrollableUserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
+                            runBlocking {
+                                launch(Dispatchers.IO) {
+                                    sendCreateUserData(email,fullName,username,password, picture)
+                                }
                             }
                         }
-                    }
+                    Text(
+                        text = "Volver al inicio de sesión",
+                        modifier = Modifier
+                            .clickable {
+                                showLoginForm.value = !showLoginForm.value
+                            }
+                            .padding(16.dp),
+                        color = colorResource(id = R.color.Buttom),
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    
                 }
                 Spacer(modifier = Modifier.height(15.dp))
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    val text1 = if (showLoginForm.value) stringResource(id = R.string.No_account) else stringResource(id = R.string.Have_account)
-                    val text2 = if (showLoginForm.value) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val text1 = if (showLoginForm.value) stringResource(id = R.string.No_account) else stringResource(id = R.string.Have_account)
+                        val text2 = if (showLoginForm.value) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
 
+                        Text(
+                            text = text1,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = text2,
+                            modifier = Modifier
+                                .clickable { showLoginForm.value = !showLoginForm.value }
+                                .padding(start = 5.dp),
+                            color = colorResource(id = R.color.Buttom)
+                        )
+                    }
+                    // Agrega el texto clickeable "Forgot your password?"
                     Text(
-                        text = text1,
-                        color = Color.White,
-                    )
-                    Text(
-                        text = text2,
+                        text = stringResource(id = R.string.forgot_password),
                         modifier = Modifier
-                            .clickable { showLoginForm.value = !showLoginForm.value }
+                            .clickable { /* Acción cuando se hace clic en "Forgot your password?" */ }
                             .padding(start = 5.dp),
                         color = colorResource(id = R.color.Buttom)
                     )
@@ -144,13 +200,13 @@ fun SignUpScreen(
         }
     }
 }
+
 @Composable
-fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) -> Unit = { _, _ -> }) {
+fun UserLoginForm(isCreatedAccount: Boolean = false,context: Context, onDone: (String, String) -> Unit = { _, _ -> }) {
     val username = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
-    val textPass= stringResource(id =R.string.password_advice )
-
+    val textPass = stringResource(id = R.string.password_advice)
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
@@ -158,7 +214,7 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
             .padding(horizontal = 16.dp)
     ) {
 
-        // Entrada de Email
+        // Entrada de User
         UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
 
         // Entrada de Password
@@ -175,17 +231,32 @@ fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) ->
             labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
-
         // Botón de envío
-        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)) {
+        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),isEnabled = true) {
             onDone(username.value.trim(), password.value.trim())
+            Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
         }
     }
 }
 
-
+@Composable
+fun ScrollableUserCreateForm(isCreatedAccount: Boolean = false, context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        item {
+            // Área desplazable
+            UserCreateForm(isCreatedAccount, context, onDone)
+        }
+    }
+}
 @Composable
 fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
+    val isCheckedList = remember { List(3) { mutableStateOf(false) } }
     val emailState = rememberSaveable { mutableStateOf("") }
     val passwordState = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
@@ -221,8 +292,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
         }
     }
 
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column( horizontalAlignment = Alignment.CenterHorizontally) {
         Log.d("UserCreateForm", "Valor de selectedImageUri: ${selectedImageUri.value}")
         selectedImageUri.value?.let { uri ->
             Image(
@@ -257,19 +327,33 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
             labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
-
+        CheckButtonForRegister(isCheckedList = isCheckedList, index = 0,text = stringResource(id = R.string.terms), dialogtitle = stringResource(
+            id = R.string.terms
+        ), dialogText = stringResource(id = R.string.terminos_y_condiciones))
+        CheckButtonForRegister(isCheckedList = isCheckedList, index = 1, text = stringResource(id = R.string.politics), dialogtitle = stringResource(
+            id = R.string.politics
+        ), dialogText = stringResource(id = R.string.politics_text))
+        CheckButtonForRegister(isCheckedList = isCheckedList, index = 2, text = stringResource(id = R.string.data), dialogtitle = stringResource(
+            id = R.string.data
+        ), dialogText = stringResource(id = R.string.data_text))
         SubmitButton(
-            textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
+            textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),
+            isEnabled = isCheckedList.all { it.value }
         ) {
-            val file = File(context.filesDir, "temp_image")
-            Log.d("File","${file}")
-            onDone(
-                emailState.value.trim(),
-                fullNameState.value.trim(),
-                userNameState.value.trim(),
-                passwordState.value.trim(),
-                file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
-            )
+            if (isCheckedList.all { it.value }) {
+                val file = File(context.filesDir, "temp_image")
+                Log.d("File", "${file}")
+                onDone(
+                    emailState.value.trim(),
+                    fullNameState.value.trim(),
+                    userNameState.value.trim(),
+                    passwordState.value.trim(),
+                    file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
+                )
+                Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Selecciona todos los checkboxes", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
@@ -303,7 +387,7 @@ fun NameInput(label: String, fieldState: MutableState<String>) {
 }
 
 @Composable
-fun SubmitButton(textId: String, onClick: ()->Unit) {
+fun SubmitButton(textId: String,  isEnabled: Boolean,onClick: ()->Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -311,6 +395,7 @@ fun SubmitButton(textId: String, onClick: ()->Unit) {
             .fillMaxWidth(1f)
             .height(48.dp),
         shape = RoundedCornerShape(8.dp),
+        enabled=isEnabled,
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(id = R.color.Buttom)
         )
@@ -347,7 +432,7 @@ fun PasswordInput(passwordSate: MutableState<String>,
         trailingIcon = {
             if(passwordSate.value.isNotBlank()){
                 PasswordVisibleIcon(passwordVisible)
-            }else null
+            }
         }
     )
 }
@@ -375,3 +460,63 @@ fun EmailInput(emailState: MutableState<String>, label:String) {
             .padding(8.dp)
     )
 }
+
+@Composable
+fun CheckButtonForRegister(isCheckedList: List<MutableState<Boolean>>, index: Int,text: String, dialogtitle: String, dialogText: String
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()  // Ocupa el ancho máximo disponible
+            .padding(5.dp)
+            .clickable {
+                showDialog = true
+            }
+    ) {
+        Checkbox(
+            checked = isCheckedList[index].value,
+            onCheckedChange = { isCheckedList[index].value = it },
+            modifier = Modifier.align(CenterVertically),
+            colors = androidx.compose.material3.CheckboxDefaults.colors(colorResource(id = R.color.Buttom))
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = text,
+            modifier = Modifier
+                .align(CenterVertically)
+                .padding(5.dp)
+                .clickable {
+                    showDialog = true
+                }
+                .weight(1f)  // Ocupa el espacio restante
+                .wrapContentWidth(Alignment.Start),  // Alinea el texto a la izquierda
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+
+    // Mostrar el cuadro de diálogo emergente
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text(text = dialogtitle)
+            },
+            text = {
+                Text(text = dialogText)
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            }
+        )
+    }
+}
+
+
