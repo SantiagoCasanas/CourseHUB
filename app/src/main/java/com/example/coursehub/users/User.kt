@@ -41,3 +41,10 @@ data class UserInfo(
     @SerializedName("profile_picture")
     val profilePicture: String?
 )
+
+data class UserInfoResponse(
+    val username: String?,
+    val email: String?,
+    @SerializedName("full_name")
+    val fullName:String?
+)
