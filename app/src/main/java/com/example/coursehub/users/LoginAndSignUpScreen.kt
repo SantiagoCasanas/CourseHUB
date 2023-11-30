@@ -125,8 +125,8 @@ fun SignUpScreen(
         ) {
             Column(
                 modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+                    .fillMaxSize()
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -276,7 +276,6 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     }
                 }
                 selectedImageUri.value = uri
-                // Enviar la Uri al callback, incluso si es nula
                 onDone(
                     emailState.value.trim(),
                     fullNameState.value.trim(),
@@ -285,8 +284,6 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     file// Enviar la Uri al callback
                 )
             } catch (e: Exception) {
-                // Manejar errores si la conversión de la Uri a archivo falla
-                // Aquí podrías mostrar un mensaje de error o manejar la excepción según sea necesario
                 Log.d("UserCreateForm", "error: ${e.message}")
             }
         }
@@ -309,7 +306,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                 launcher.launch("image/*")
             }
         ) {
-            Text("Select Image")
+            Text(stringResource(id = R.string.image_upload))
         }
         EmailInput(label = stringResource(id = R.string.email), emailState = emailState)
         NameInput(label = stringResource(id = R.string.fullname), fieldState = fullNameState)
@@ -348,7 +345,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     fullNameState.value.trim(),
                     userNameState.value.trim(),
                     passwordState.value.trim(),
-                    file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
+                    file
                 )
                 Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
             } else {

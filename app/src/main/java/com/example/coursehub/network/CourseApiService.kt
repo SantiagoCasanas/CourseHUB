@@ -137,9 +137,9 @@ interface UserService{
     @Multipart
     @PUT("user/update_own_info")
     suspend fun updateOwnInfo(
-        @Part("username") username: RequestBody,
-        @Part("email") email: RequestBody,
-        @Part("full_name") fullName: RequestBody,
+        @Part("username") username: RequestBody?,
+        @Part("email") email: RequestBody?,
+        @Part("full_name") fullName: RequestBody?,
         @Part image: MultipartBody.Part?
     ): UserCreateResponse
 }
@@ -159,7 +159,7 @@ suspend fun sendCreateUserData(
         val emailBody = email.toRequestBody("text/plain".toMediaTypeOrNull())
         val fullNameBody = fullName.toRequestBody("text/plain".toMediaTypeOrNull())
         val passwordBody = password.toRequestBody("text/plain".toMediaTypeOrNull())
-        // Realizar la solicitud HTTP para crear el usuario con Retrofit
+
         Log.d("Image:", "${part}")
         val response = userService.createUser(usernameBody, emailBody, fullNameBody, passwordBody, part)
         if (response.profilePicture != null) {

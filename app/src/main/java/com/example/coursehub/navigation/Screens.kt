@@ -4,5 +4,6 @@ enum class Screens {
     LoginAndSignUpScreen,
     HomeScreen,
     UserProfile,
-    UpdateScreen,SettingsScreen
+    UpdateScreen,
+    SettingsScreen
 }

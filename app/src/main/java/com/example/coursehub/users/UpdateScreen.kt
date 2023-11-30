@@ -230,7 +230,7 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
     val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
 
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
-    val defaultImageUri = url// URI de la imagen predeterminada
+    val defaultImageUri = url
 
     val updatedUri by rememberUpdatedState(selectedImageUri.value)
 
@@ -247,16 +247,13 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
                     }
                 }
                 selectedImageUri.value = uri
-                // Enviar la Uri al callback, incluso si es nula
                 onDone(
                     email.value.trim(),
                     fullname.value.trim(),
                     username.value.trim(),
-                    file// Enviar la Uri al callback
+                    file
                 )
             } catch (e: Exception) {
-                // Manejar errores si la conversión de la Uri a archivo falla
-                // Aquí podrías mostrar un mensaje de error o manejar la excepción según sea necesario
                 Log.d("UserCreateForm", "error: ${e.message}")
             }
         }
@@ -278,7 +275,7 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
                 launcher.launch("image/*")
             }
         ) {
-            Text("Change Image")
+            Text(stringResource(id = R.string.image_edit))
         }
         EmailInput(label=stringResource(id = R.string.email),
             emailState = email
@@ -292,7 +289,7 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
             fieldState = username
         )
         SubmitButton(
-            textId = "Edit Account",isEnabled = true
+            textId = stringResource(id = R.string.Edit_account),isEnabled = true
         ) {
             val file = File(context.filesDir, "temp_image")
             Log.d("File","${file}")
@@ -300,41 +297,7 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
                 email.value.trim(),
                 fullname.value.trim(),
                 username.value.trim(),
-                file // Puedes cambiar esto si la imagen se maneja de otra manera aquí
-            )
-        }
-    }
-}
-
-
-@Composable
-fun UpdateInfoScreen() {
-    var showDialog by remember { mutableStateOf(false) }
-    var isSuccess by remember { mutableStateOf(false) }
-
-
-    if (showDialog) {
-        if (isSuccess) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text(text = "¡Operación exitosa!") },
-                confirmButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("Cerrar")
-                    }
-                },
-                modifier = Modifier.padding(16.dp)
-            )
-        } else {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text(text = "Error al actualizar") },
-                confirmButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("Cerrar")
-                    }
-                },
-                modifier = Modifier.padding(16.dp)
+                file
             )
         }
     }
