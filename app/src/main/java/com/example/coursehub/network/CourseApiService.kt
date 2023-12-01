@@ -37,9 +37,16 @@ import javax.inject.Inject
 private const val BASE_URL = "https://jesus.pythonanywhere.com/"
 const val PREFS_NAME = "CourseHUB_prefs"
 
+object ErrorInterceptorProvider {
+    val interceptor = ErrorInterceptor() // Instancia única del ErrorInterceptor
+}
+val okHttpClient = OkHttpClient.Builder()
+    .addInterceptor(ErrorInterceptorProvider.interceptor)
+    .build()
 
 private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
+    .client(okHttpClient)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 
@@ -186,7 +193,7 @@ suspend fun sendRecoverCode(context: Context, email: String, resetPass:()-> Unit
         try {
             val data = GetTokenData(email)
             val response = userService.sendToken(data)
-            Log.d("Error:","${response.error}")
+            Log.d("Error:","${response}")
             withContext(Dispatchers.Main) {
                 if (response.detail != null) {
                     if (response.detail == "the token has been sent.") {
@@ -199,15 +206,17 @@ suspend fun sendRecoverCode(context: Context, email: String, resetPass:()-> Unit
                         Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
                         Log.d("Detail:", "${response.detail}")
                     }
-                } else {
-                    Toast.makeText(context, response.error, Toast.LENGTH_SHORT).show()
-                    Log.d("Error:", "${response.error}")
                 }
             }
-        }catch (e:Exception){
+        }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                Log.d("Token error:","${e.message}")
+                val errorToShow = if (ErrorInterceptorProvidesr.interceptor.lastError != null) {
+                    ErrorInterceptorProvider.interceptor.lastError
+                } else {
+                    e.message
+                }
+                Toast.makeText(context, errorToShow, Toast.LENGTH_SHORT).show()
+                Log.d("Token error:","${errorToShow}")
             }
         }
     }
@@ -228,14 +237,18 @@ suspend fun resetPassword(context: Context,email: String,token: String,password:
                         Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
                         Log.d("Detail:","${response.detail}")
                     }
-                }else{
-                    Toast.makeText(context, response.error, Toast.LENGTH_SHORT).show()
-                    Log.d("Error:","${response.error}")
                 }
             }
         }catch (e:Exception){
-            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-            Log.d("Reset pass error:","${e.message}")
+            withContext(Dispatchers.Main) {
+                val errorToShow = if (ErrorInterceptorProvider.interceptor.lastError != null) {
+                    ErrorInterceptorProvider.interceptor.lastError
+                } else {
+                    e.message
+                }
+                Toast.makeText(context, errorToShow, Toast.LENGTH_SHORT).show()
+                Log.d("Token error:","${errorToShow}")
+            }
         }
     }
 }
