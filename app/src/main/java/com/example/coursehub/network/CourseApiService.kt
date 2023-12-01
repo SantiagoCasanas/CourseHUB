@@ -19,6 +19,8 @@ import com.example.coursehub.users.ResetPassData
 import com.example.coursehub.users.TokenRespose
 import com.example.coursehub.users.UserCreateResponse
 import com.example.coursehub.users.UserInfo
+import com.example.coursehub.users.UserInfoResponse
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -55,7 +57,7 @@ class Auth{
     @Inject
     lateinit var tokenManager: TokenManager
 
-    suspend fun sendLoginUserData( username: String, password: String, home:()-> Unit){
+    suspend fun sendLoginUserData( context: Context,username: String, password: String, home:()-> Unit){
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val loginUser = LoginUser(username, password)
@@ -66,9 +68,15 @@ class Auth{
                     Log.d("Token saved","${tokenManager.getAccessToken()}")
                     home()
                 }
-            } catch (e: Exception) {
+            }catch (e:Exception){
                 withContext(Dispatchers.Main) {
-                    Log.d("Connection error", "${e.message}")
+                    val errorToShow = if (ErrorInterceptorProvider.interceptor.lastError != null) {
+                        ErrorInterceptorProvider.interceptor.lastError
+                    } else {
+                        e.message
+                    }
+                    Toast.makeText(context, errorToShow, Toast.LENGTH_SHORT).show()
+                    Log.d("Token error:","${errorToShow}")
                 }
             }
         }
@@ -103,22 +111,34 @@ class Auth{
     ): Result<UserCreateResponse> {
         return try {
             val service = providesAuth().create(UserService::class.java)
-            val requestBody = pictureUri!!.asRequestBody("image/*".toMediaTypeOrNull())
-            val part = MultipartBody.Part.createFormData("profile", pictureUri!!.name, requestBody)
-            val usernameBody = username!!.toRequestBody("text/plain".toMediaTypeOrNull())
-            val emailBody = email!!.toRequestBody("text/plain".toMediaTypeOrNull())
-            val fullNameBody = fullName!!.toRequestBody("text/plain".toMediaTypeOrNull())
-
-            Log.d("Image:", "${part}")
-            val response = service.updateOwnInfo(usernameBody, emailBody, fullNameBody, part)
-            if (response!= null) {
+            val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
+            val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
+            val emailBody = email?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val fullNameBody = fullName?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val usernameBody = username?.toRequestBody("text/plain".toMediaTypeOrNull())
+            Log.d("Data user:", "${requestBody},${emailBody},${fullNameBody},${usernameBody}")
+            val response = service.updateOwnInfo(emailBody, fullNameBody, usernameBody, part)
+            Log.d("update data:","${response}")
+            if (response != null) {
+                Log.d("Updated:","${response.email}")
                 Result.success(response)
             } else {
                 Result.failure(Exception("Error: User object not found in the response"))
             }
         } catch (e: Exception) {
-            Log.d("Create error:", "${e.message}")
+            Log.d("Update error:", "${e.message}")
             Result.failure(e)
+        }
+    }
+
+    suspend fun updateuser(email: String?, fullName: String?, username: String?){
+        try {
+            val service = providesAuth().create(UserService::class.java)
+            val data = UserInfoResponse(email, fullName, username)
+            val response = service.updateInfo(data)
+            Log.d("Updated:", "${response}")
+        } catch (e: Exception) {
+            Log.d("Error updating:", "${e.message}")
         }
     }
 
@@ -144,11 +164,14 @@ interface UserService{
     @Multipart
     @PUT("user/update_own_info")
     suspend fun updateOwnInfo(
-        @Part("username") username: RequestBody?,
         @Part("email") email: RequestBody?,
         @Part("full_name") fullName: RequestBody?,
+        @Part("username") username: RequestBody?,
         @Part image: MultipartBody.Part?
     ): UserCreateResponse
+
+    @PUT("user/update_own_info")
+    suspend fun updateInfo(@Body data: UserInfoResponse): UserCreateResponse
 
     @POST("password/get-token-reset-password")
     suspend fun sendToken(@Body email: GetTokenData): TokenRespose
@@ -163,21 +186,20 @@ suspend fun sendCreateUserData(
     fullName: String,
     username: String,
     password: String,
-    pictureUri: File?,
-    create:()-> Unit
+    pictureUri: File?
+    //create:()-> Unit
 ): Result<UserCreateResponse> {
     return try {
-        val requestBody = pictureUri!!.asRequestBody("image/*".toMediaTypeOrNull())
-        val part = MultipartBody.Part.createFormData("profile", pictureUri!!.name, requestBody)
-        val usernameBody = username.toRequestBody("text/plain".toMediaTypeOrNull())
-        val emailBody = email.toRequestBody("text/plain".toMediaTypeOrNull())
-        val fullNameBody = fullName.toRequestBody("text/plain".toMediaTypeOrNull())
-        val passwordBody = password.toRequestBody("text/plain".toMediaTypeOrNull())
-
-        Log.d("Image:", "${part}")
+        val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
+        val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
+        val usernameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), username)
+        val emailBody = RequestBody.create("text/plain".toMediaTypeOrNull(), email)
+        val fullNameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), fullName)
+        val passwordBody = RequestBody.create("text/plain".toMediaTypeOrNull(), password)
         val response = userService.createUser(usernameBody, emailBody, fullNameBody, passwordBody, part)
         if (response != null) {
-            create()
+            //create()
+            Log.d("Created:","${response.email}")
             Result.success(response)
         } else {
             Result.failure(Exception("Error: User object not found in the response"))
@@ -210,7 +232,7 @@ suspend fun sendRecoverCode(context: Context, email: String, resetPass:()-> Unit
             }
         }catch (e: Exception){
             withContext(Dispatchers.Main) {
-                val errorToShow = if (ErrorInterceptorProvidesr.interceptor.lastError != null) {
+                val errorToShow = if (ErrorInterceptorProvider.interceptor.lastError != null) {
                     ErrorInterceptorProvider.interceptor.lastError
                 } else {
                     e.message

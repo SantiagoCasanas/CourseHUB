@@ -15,7 +15,7 @@ class ErrorInterceptor : Interceptor {
         if (!response.isSuccessful) {
             val errorBody = response.body?.string()
             val error = Gson().fromJson(errorBody, TokenRespose::class.java)
-            lastError = error.error ?: error.detail
+            lastError = error.error ?: error.detail ?:error.profile_picture
             // Imprimir el error
             Log.d("ServerError", "Error: ${lastError}")
         }

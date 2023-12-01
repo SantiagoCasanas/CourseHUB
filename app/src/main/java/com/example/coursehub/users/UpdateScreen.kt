@@ -1,6 +1,8 @@
 package com.example.coursehub.users
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -51,9 +53,16 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.test.core.app.ActivityScenario.launch
 import coil.compose.rememberImagePainter
 import java.io.File
 import coil.compose.rememberImagePainter
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 @Composable
 fun ProfileView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
@@ -83,7 +92,7 @@ fun ProfileView(navController: NavController, modifier: Modifier = Modifier, con
             userupdateForm2(userInfo = userInfo, context){ email, fullName, username, picture ->
                 runBlocking {
                     launch(Dispatchers.IO) {
-                        info.update_info(username,email,fullName, picture)
+                        info.update_info(email, fullName ,username, picture)
                     }
                 }
             }
@@ -194,11 +203,17 @@ fun userUpdateForm(
     val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
     val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
 
+    Log.d("Data form:", "${fullname},${username},${email}")
+
     Column (horizontalAlignment = Alignment.CenterHorizontally,
     ){
         Image(
             painter = rememberImagePainter(url),
-            contentDescription = null
+            contentDescription = null,
+            modifier = Modifier
+                .size(100.dp)
+                .clip(shape = RoundedCornerShape(4.dp))
+                .background(Color.LightGray)
         )
         EmailInput(label=stringResource(id = R.string.email),
             emailState = email
@@ -221,24 +236,30 @@ fun userUpdateForm(
 }
 
 @Composable
-fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, String, String, File?) -> Unit = { email, fullname, username, picture -> }) {
-    val email = rememberSaveable {
-        mutableStateOf("${userInfo!!.email}")
-    }
+fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, String, String, File?) -> Unit = { _, _, _, _ -> }) {
+
     val url = userInfo!!.profilePicture
-    val fullname = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
-    val username = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
+    val emailState = rememberSaveable {  mutableStateOf("${userInfo!!.email}") }
+    val fullNameState = rememberSaveable { mutableStateOf("${userInfo!!.fullName}") }
+    val userNameState = rememberSaveable { mutableStateOf("${userInfo!!.username}") }
 
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
-    val defaultImageUri = url
+    val defaultImageUri = runBlocking {
+        val imageDeferred = async(Dispatchers.IO) {
+            downloadImageAndSaveAsTempFile(context, url!!)
+        }
+        imageDeferred.await()
+    }
+    Log.d("URL:", "${defaultImageUri}")
 
+    Log.d("Data:", "${emailState},${fullNameState},${userNameState}")
     val updatedUri by rememberUpdatedState(selectedImageUri.value)
 
     val finalUri = updatedUri ?: defaultImageUri
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            val file = File(context.filesDir, "temp_image")
+            val file = File(context.filesDir, "temp_image.png")
             Log.d("File","${file}")
             try {
                 context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -248,9 +269,9 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
                 }
                 selectedImageUri.value = uri
                 onDone(
-                    email.value.trim(),
-                    fullname.value.trim(),
-                    username.value.trim(),
+                    emailState.value.trim(),
+                    fullNameState.value.trim(),
+                    userNameState.value.trim(),
                     file
                 )
             } catch (e: Exception) {
@@ -278,28 +299,52 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
             Text(stringResource(id = R.string.image_edit))
         }
         EmailInput(label=stringResource(id = R.string.email),
-            emailState = email
+            emailState = emailState
         )
         NameInput(
             label = stringResource(id = R.string.fullname),
-            fieldState = fullname
+            fieldState = fullNameState
         )
         UsernameInput(
             label = stringResource(id = R.string.username),
-            fieldState = username
+            fieldState = userNameState
         )
         SubmitButton(
             textId = stringResource(id = R.string.Edit_account),isEnabled = true
         ) {
-            val file = File(context.filesDir, "temp_image")
+            val file = File(context.filesDir, "temp_image.png")
             Log.d("File","${file}")
             onDone(
-                email.value.trim(),
-                fullname.value.trim(),
-                username.value.trim(),
+                emailState.value.trim(),
+                fullNameState.value.trim(),
+                userNameState.value.trim(),
                 file
             )
         }
     }
 }
 
+suspend fun downloadImageAndSaveAsTempFile(context: Context, imageUrl: String): File? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL(imageUrl)
+            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+
+            val inputStream: InputStream = connection.inputStream
+            val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
+
+            val tempImageFile = File(context.filesDir, "temp_image.png")
+            val fileOutputStream = FileOutputStream(tempImageFile)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            fileOutputStream.flush()
+            fileOutputStream.close()
+
+            tempImageFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+}

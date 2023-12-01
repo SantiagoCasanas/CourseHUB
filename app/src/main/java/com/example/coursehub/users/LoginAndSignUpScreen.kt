@@ -140,7 +140,7 @@ fun SignUpScreen(
                     UserLoginForm(isCreatedAccount = false) { username, password ->
                         runBlocking {
                             launch(Dispatchers.IO) {
-                                login.sendLoginUserData(username,password){
+                                login.sendLoginUserData(context,username,password){
                                     Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
                                     navController.navigate(Screens.HomeScreen.name)
                                 }
@@ -151,9 +151,10 @@ fun SignUpScreen(
                     ScrollableUserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
                             runBlocking {
                                 launch(Dispatchers.IO) {
-                                    sendCreateUserData(email,fullName,username,password, picture){
-                                        Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
-                                    }
+                                    sendCreateUserData(email,fullName,username,password, picture)
+                                    //{
+                                        //Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
+                                    //}
                                 }
                             }
                         }
@@ -235,7 +236,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            val file = File(context.filesDir, "temp_image")
+            val file = File(context.filesDir, "temp_image.png")
             Log.d("File","${file}")
             try {
                 context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -306,7 +307,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
             isEnabled = isCheckedList.all { it.value }
         ) {
             if (isCheckedList.all { it.value }) {
-                val file = File(context.filesDir, "temp_image")
+                val file = File(context.filesDir, "temp_image.png")
                 Log.d("File", "${file}")
                 onDone(
                     emailState.value.trim(),

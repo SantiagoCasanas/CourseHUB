@@ -43,15 +43,16 @@ data class UserInfo(
 )
 
 data class UserInfoResponse(
-    val username: String?,
     val email: String?,
     @SerializedName("full_name")
-    val fullName:String?
+    val fullName:String?,
+    val username: String?
 )
 
 data class TokenRespose(
     val detail: String?,
-    val error: String?
+    val error: String?,
+    val profile_picture: String?
 )
 
 data class GetTokenData(
