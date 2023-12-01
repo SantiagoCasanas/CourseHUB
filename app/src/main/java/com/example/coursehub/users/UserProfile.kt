@@ -1,6 +1,7 @@
 package com.example.coursehub.users
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,9 +43,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
+import com.example.coursehub.network.Auth
+import com.example.coursehub.network.TokenManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+    val auth: Auth = Auth()
+    auth.tokenManager = TokenManager(context)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -88,7 +96,16 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
             // Botón de cierre de sesión
             LogoutButton(
                 textId = stringResource(id = R.string.logout),
-                onClick = { /* TODO: Acción para cerrar sesión */ }
+                onClick = {
+                    runBlocking {
+                        launch(Dispatchers.IO){
+                            auth.userLogout(auth.tokenManager.getRefreshToken(context)){
+                                navController.navigate(Screens.LoginAndSignUpScreen.name)
+                                Toast.makeText(context, R.string.logout_success, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
             )
         }
     }

@@ -15,6 +15,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.coursehub.users.GetTokenData
+import com.example.coursehub.users.LogoutData
+import com.example.coursehub.users.LogoutResponse
 import com.example.coursehub.users.ResetPassData
 import com.example.coursehub.users.TokenRespose
 import com.example.coursehub.users.UserCreateResponse
@@ -27,11 +29,13 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PUT
 import retrofit2.http.Part
 import java.io.File
+import java.net.ProtocolException
 import javax.inject.Inject
 
 
@@ -65,7 +69,9 @@ class Auth{
                 withContext(Dispatchers.Main) {
                     Log.d("you're logged in", "${response.access}")
                     tokenManager.saveAccessToken(response.access)
-                    Log.d("Token saved","${tokenManager.getAccessToken()}")
+                    tokenManager.saveRefreshToken(context,response.refresh)
+                    Log.d("Token access:","${tokenManager.getAccessToken()}")
+                    Log.d("Token refresh:","${tokenManager.getRefreshToken(context)}")
                     home()
                 }
             }catch (e:Exception){
@@ -142,6 +148,40 @@ class Auth{
         }
     }
 
+    suspend fun userLogout(tokenRefresh: String?, login:()->Unit){
+        GlobalScope.launch(Dispatchers.IO) {
+            val service = providesAuth().create(UserService::class.java)
+            try {
+                val token = LogoutData(tokenRefresh!!)
+                Log.d("Token:", "${tokenRefresh}")
+                val response = service.logout(token)
+                withContext(Dispatchers.Main) {
+                    if (response.detail=="successful logout"){
+                        login()
+                        Log.d("Logout :", "${token.refresh}")
+                        Log.d("Logout :", "${response.detail}")
+                    }else{
+                        Log.d("Error:","${response.code}")
+                    }
+                }
+            } catch (e: ProtocolException) {
+                withContext(Dispatchers.Main) {
+                    if (e.message?.contains("HTTP 205") == true) {
+                        login()
+                        Log.d("Success:", ":D")
+                    } else {
+                        Log.d("Error logout:", "${e.message}")
+
+                    }
+                }
+            } catch (e:Exception){
+                withContext(Dispatchers.Main) {
+                    Log.d("Error logout:", "${e.message}")
+                }
+            }
+        }
+    }
+
 }
 
 interface UserService{
@@ -178,6 +218,9 @@ interface UserService{
 
     @POST("password/reset")
     suspend fun resetPass(@Body data: ResetPassData ): TokenRespose
+
+    @POST("user/logout")
+    suspend fun logout(@Body data: LogoutData ): LogoutResponse
 }
 
 

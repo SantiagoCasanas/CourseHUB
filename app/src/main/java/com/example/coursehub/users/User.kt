@@ -63,3 +63,14 @@ data class ResetPassData(
     val token: String,
     val password:String
 )
+
+data class LogoutData(
+    @SerializedName("refresh_token")
+    val refresh: String
+)
+
+data class LogoutResponse(
+    val detail: String?,
+    val code: String?,
+    val messages: String?
+)

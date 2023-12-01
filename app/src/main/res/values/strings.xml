@@ -39,6 +39,7 @@
     <string name="code">Send code</string>
     <string name="token">Code</string>
     <string name="reset">Reset password</string>
+    <string name="logout_success">Successful logout</string>
     <string name="terminos_y_condiciones">Responsible Use:
 Use the application in accordance with the law and ethically.
 
