@@ -5,5 +5,7 @@ enum class Screens {
     HomeScreen,
     UserProfile,
     UpdateScreen,
-    SettingsScreen
+    SettingsScreen,
+    RecoverPassword,
+    ResetPassword
 }

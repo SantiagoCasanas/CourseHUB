@@ -9,6 +9,8 @@ import com.example.coursehub.users.SignUpScreen
 import com.example.coursehub.users.ProfileView
 import com.example.coursehub.users.ProfileViewUser
 import com.example.coursehub.users.SettingsView
+import com.example.coursehub.users.recoverPasswordScreen
+import com.example.coursehub.users.resetPasswordScreen
 
 @Composable
 fun CourseHubNavigate(){
@@ -28,6 +30,12 @@ fun CourseHubNavigate(){
         }
         composable(Screens.SettingsScreen.name){
             SettingsView(navController = navController)
+        }
+        composable(Screens.RecoverPassword.name){
+            recoverPasswordScreen(navController = navController)
+        }
+        composable(Screens.ResetPassword.name){
+            resetPasswordScreen(navController = navController)
         }
     }
 }

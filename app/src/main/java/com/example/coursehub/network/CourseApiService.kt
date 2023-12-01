@@ -1,10 +1,9 @@
 package com.example.coursehub.network
 
-import android.content.Context
+
 import android.util.Log
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
-import com.example.coursehub.users.User
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -13,9 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.content.SharedPreferences
-import android.net.Uri
-import androidx.compose.ui.platform.LocalContext
+import com.example.coursehub.users.GetTokenData
+import com.example.coursehub.users.ResetPassData
+import com.example.coursehub.users.TokenRespose
 import com.example.coursehub.users.UserCreateResponse
 import com.example.coursehub.users.UserInfo
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -24,7 +23,6 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.create
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PUT
@@ -142,6 +140,12 @@ interface UserService{
         @Part("full_name") fullName: RequestBody?,
         @Part image: MultipartBody.Part?
     ): UserCreateResponse
+
+    @POST("password/get-token-reset-password")
+    suspend fun sendToken(@Body email: GetTokenData): TokenRespose
+
+    @POST("password/reset")
+    suspend fun resetPass(@Body data: ResetPassData ): TokenRespose
 }
 
 
@@ -150,7 +154,8 @@ suspend fun sendCreateUserData(
     fullName: String,
     username: String,
     password: String,
-    pictureUri: File?
+    pictureUri: File?,
+    create:()-> Unit
 ): Result<UserCreateResponse> {
     return try {
         val requestBody = pictureUri!!.asRequestBody("image/*".toMediaTypeOrNull())
@@ -162,7 +167,8 @@ suspend fun sendCreateUserData(
 
         Log.d("Image:", "${part}")
         val response = userService.createUser(usernameBody, emailBody, fullNameBody, passwordBody, part)
-        if (response.profilePicture != null) {
+        if (response != null) {
+            create()
             Result.success(response)
         } else {
             Result.failure(Exception("Error: User object not found in the response"))
@@ -170,5 +176,57 @@ suspend fun sendCreateUserData(
     } catch (e: Exception) {
         Log.d("Create error:", "${e.message}")
         Result.failure(e)
+    }
+}
+
+suspend fun sendRecoverCode(email: String, resetPass:()-> Unit){
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            val data = GetTokenData(email)
+            val response = userService.sendToken(data)
+            if (response.detail!=null){
+                if (response.detail == "the token has been sent."){
+                    withContext(Dispatchers.Main) {
+                        resetPass()
+                    }
+                    Log.d("Detail:","${response.detail}")
+                }else{
+                    Log.d("Detail:","${response.detail}")
+                }
+            }else{
+                Log.d("Error:","${response.error}")
+            }
+        }catch (e:Exception){
+            withContext(Dispatchers.Main) {
+                Log.d("Token error:","${e.message}")
+            }
+        }
+    }
+}
+
+suspend fun resetPassword(email: String,token: String,password: String, resetPass:()-> Unit){
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            val data = ResetPassData(email,token, password)
+            val response = userService.resetPass(data)
+            if (response.detail!=null){
+                if (response.detail == "Password has been updated."){
+                    withContext(Dispatchers.Main) {
+                        Log.d("Detail:","${response.detail}")
+                        resetPass()
+                    }
+                    response
+                }else{
+                    Log.d("Detail:","${response.detail}")
+                    response
+                }
+            }else{
+                Log.d("Error:","${response.error}")
+                response
+            }
+        }catch (e:Exception){
+            Log.d("Reset pass error:","${e.message}")
+            null
+        }
     }
 }

@@ -35,6 +35,10 @@
     <string name="Edit_account">Edit Account</string>
     <string name="image_edit">Change image</string>
     <string name="image_upload">Select image</string>
+    <string name="accept">Accept</string>
+    <string name="code">Send code</string>
+    <string name="token">Code</string>
+    <string name="reset">Reset password</string>
     <string name="terminos_y_condiciones">Responsible Use:
 Use the application in accordance with the law and ethically.
 

@@ -48,3 +48,17 @@ data class UserInfoResponse(
     @SerializedName("full_name")
     val fullName:String?
 )
+
+data class TokenRespose(
+    val detail: String?,
+    val error: String?
+)
+
+data class GetTokenData(
+    val email: String
+)
+data class ResetPassData(
+    val email: String,
+    val token: String,
+    val password:String
+)

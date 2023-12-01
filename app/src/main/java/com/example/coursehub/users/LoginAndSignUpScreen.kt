@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.material3.MaterialTheme
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -62,9 +61,11 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -132,10 +133,15 @@ fun SignUpScreen(
             ) {
                 Spacer(modifier = Modifier.height(15.dp))
                 if (showLoginForm.value) {
-                    UserLoginForm(isCreatedAccount = false,context) { username, password ->
+                    Image(
+                        painter= painterResource(id = R.drawable.logo),
+                        contentDescription = null,
+                    )
+                    UserLoginForm(isCreatedAccount = false) { username, password ->
                         runBlocking {
                             launch(Dispatchers.IO) {
                                 login.sendLoginUserData(username,password){
+                                    Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
                                     navController.navigate(Screens.HomeScreen.name)
                                 }
 
@@ -146,7 +152,9 @@ fun SignUpScreen(
                     ScrollableUserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
                             runBlocking {
                                 launch(Dispatchers.IO) {
-                                    sendCreateUserData(email,fullName,username,password, picture)
+                                    sendCreateUserData(email,fullName,username,password, picture){
+                                        Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             }
                         }
@@ -187,54 +195,15 @@ fun SignUpScreen(
                             color = colorResource(id = R.color.Buttom)
                         )
                     }
-                    // Agrega el texto clickeable "Forgot your password?"
                     Text(
                         text = stringResource(id = R.string.forgot_password),
                         modifier = Modifier
-                            .clickable { /* Acción cuando se hace clic en "Forgot your password?" */ }
+                            .clickable { navController.navigate(Screens.RecoverPassword.name)}
                             .padding(start = 5.dp),
                         color = colorResource(id = R.color.Buttom)
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun UserLoginForm(isCreatedAccount: Boolean = false,context: Context, onDone: (String, String) -> Unit = { _, _ -> }) {
-    val username = rememberSaveable { mutableStateOf("") }
-    val password = rememberSaveable { mutableStateOf("") }
-    val passwordVisible = rememberSaveable { mutableStateOf(false) }
-    val textPass = stringResource(id = R.string.password_advice)
-    Column(
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-
-        // Entrada de User
-        UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
-
-        // Entrada de Password
-
-        if (password.value.length < 8) {
-            Text(
-                text = textPass,
-                color = Color.Red
-            )
-        }
-
-        PasswordInput(
-            passwordSate = password,
-            labelId = stringResource(id = R.string.password),
-            passwordVisible = passwordVisible
-        )
-        // Botón de envío
-        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),isEnabled = true) {
-            onDone(username.value.trim(), password.value.trim())
-            Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -281,7 +250,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     fullNameState.value.trim(),
                     userNameState.value.trim(),
                     passwordState.value.trim(),
-                    file// Enviar la Uri al callback
+                    file
                 )
             } catch (e: Exception) {
                 Log.d("UserCreateForm", "error: ${e.message}")
@@ -347,9 +316,8 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     passwordState.value.trim(),
                     file
                 )
-                Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(context, "Selecciona todos los checkboxes", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "select all checkboxes", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -509,10 +477,48 @@ fun CheckButtonForRegister(isCheckedList: List<MutableState<Boolean>>, index: In
                         showDialog = false
                     }
                 ) {
-                    Text("Aceptar")
+                    Text(stringResource(id = R.string.accept))
                 }
             }
         )
+    }
+}
+
+@Composable
+fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) -> Unit = { _, _ -> }) {
+    val username = rememberSaveable { mutableStateOf("") }
+    val password = rememberSaveable { mutableStateOf("") }
+    val passwordVisible = rememberSaveable { mutableStateOf(false) }
+    val textPass = stringResource(id = R.string.password_advice)
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+
+        // Entrada de User
+        UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
+
+        // Entrada de Password
+
+        if (password.value.length < 8) {
+            Text(
+                text = textPass,
+                color = Color.Red
+            )
+        }
+
+        PasswordInput(
+            passwordSate = password,
+            labelId = stringResource(id = R.string.password),
+            passwordVisible = passwordVisible
+        )
+        // Botón de envío
+        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),isEnabled = true) {
+            onDone(username.value.trim(), password.value.trim())
+
+        }
     }
 }
 
