@@ -144,7 +144,6 @@ fun SignUpScreen(
                                     Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
                                     navController.navigate(Screens.HomeScreen.name)
                                 }
-
                             }
                         }
                     }

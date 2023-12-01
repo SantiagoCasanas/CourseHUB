@@ -81,7 +81,7 @@ fun recoverPasswordScreen(
                 recoverPassForm(){email->
                     runBlocking {
                         launch(Dispatchers.IO) {
-                            sendRecoverCode(email){
+                            sendRecoverCode(context,email){
                                 navController.navigate(Screens.ResetPassword.name)
                             }
                         }

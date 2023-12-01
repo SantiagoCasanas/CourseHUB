@@ -1,7 +1,9 @@
 package com.example.coursehub.network
 
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
 import retrofit2.Retrofit
@@ -179,54 +181,61 @@ suspend fun sendCreateUserData(
     }
 }
 
-suspend fun sendRecoverCode(email: String, resetPass:()-> Unit){
+suspend fun sendRecoverCode(context: Context, email: String, resetPass:()-> Unit){
     GlobalScope.launch(Dispatchers.IO) {
         try {
             val data = GetTokenData(email)
             val response = userService.sendToken(data)
-            if (response.detail!=null){
-                if (response.detail == "the token has been sent."){
-                    withContext(Dispatchers.Main) {
-                        resetPass()
+            Log.d("Error:","${response.error}")
+            withContext(Dispatchers.Main) {
+                if (response.detail != null) {
+                    if (response.detail == "the token has been sent.") {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
+                            resetPass()
+                        }
+                        Log.d("Detail:", "${response.detail}")
+                    } else {
+                        Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
+                        Log.d("Detail:", "${response.detail}")
                     }
-                    Log.d("Detail:","${response.detail}")
-                }else{
-                    Log.d("Detail:","${response.detail}")
+                } else {
+                    Toast.makeText(context, response.error, Toast.LENGTH_SHORT).show()
+                    Log.d("Error:", "${response.error}")
                 }
-            }else{
-                Log.d("Error:","${response.error}")
             }
         }catch (e:Exception){
             withContext(Dispatchers.Main) {
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                 Log.d("Token error:","${e.message}")
             }
         }
     }
 }
 
-suspend fun resetPassword(email: String,token: String,password: String, resetPass:()-> Unit){
+suspend fun resetPassword(context: Context,email: String,token: String,password: String, resetPass:()-> Unit){
     GlobalScope.launch(Dispatchers.IO) {
         try {
             val data = ResetPassData(email,token, password)
             val response = userService.resetPass(data)
-            if (response.detail!=null){
-                if (response.detail == "Password has been updated."){
-                    withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
+                if (response.detail!=null){
+                    if (response.detail == "Password has been updated."){
+                        Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
                         Log.d("Detail:","${response.detail}")
                         resetPass()
+                    }else{
+                        Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
+                        Log.d("Detail:","${response.detail}")
                     }
-                    response
                 }else{
-                    Log.d("Detail:","${response.detail}")
-                    response
+                    Toast.makeText(context, response.error, Toast.LENGTH_SHORT).show()
+                    Log.d("Error:","${response.error}")
                 }
-            }else{
-                Log.d("Error:","${response.error}")
-                response
             }
         }catch (e:Exception){
+            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
             Log.d("Reset pass error:","${e.message}")
-            null
         }
     }
 }

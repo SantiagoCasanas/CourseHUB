@@ -80,7 +80,7 @@ fun resetPasswordScreen(
                 resetPassForm(){email, token, password->
                     runBlocking {
                         launch(Dispatchers.IO) {
-                            resetPassword(email,token, password){
+                            resetPassword(context,email,token, password){
                                 navController.navigate(Screens.LoginAndSignUpScreen.name)
                             }
                         }
