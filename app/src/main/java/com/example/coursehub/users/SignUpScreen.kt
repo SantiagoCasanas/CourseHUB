@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,32 +25,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDefaults
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,30 +51,25 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.coursehub.R
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.coursehub.navigation.Screens
-import com.example.coursehub.network.Auth
-import com.example.coursehub.network.TokenManager
 import com.example.coursehub.network.sendCreateUserData
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -95,12 +80,10 @@ fun SignUpScreen(
     navController: NavController,
     context: Context = LocalContext.current
 ) {
-    val login = Auth()
-    login.tokenManager = TokenManager(context)
-    val showLoginForm = rememberSaveable {
-        mutableStateOf(true)
-    }
-    val text = if (showLoginForm.value) stringResource(id = R.string.Log_in) else stringResource(id = R.string.Sign_up)
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val arguments = navBackStackEntry?.arguments
+    val imagePath = arguments?.getString("imagePath")
+    Log.d("camera photo:","$imagePath")
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -111,7 +94,7 @@ fun SignUpScreen(
                 .padding(40.dp)
         ) {
             Text(
-                text = text,
+                text = stringResource(id = R.string.Sign_up),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
@@ -132,45 +115,47 @@ fun SignUpScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Spacer(modifier = Modifier.height(15.dp))
-                if (showLoginForm.value) {
-                    Image(
-                        painter= painterResource(id = R.drawable.logo),
-                        contentDescription = null,
-                    )
-                    UserLoginForm(isCreatedAccount = false) { username, password ->
-                        runBlocking {
-                            launch(Dispatchers.IO) {
-                                login.sendLoginUserData(context,username,password){
-                                    Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
-                                    navController.navigate(Screens.HomeScreen.name)
-                                }
-                            }
+                ScrollableUserCreateForm(imagePath,navController, context) { email, fullName, username,password, picture ->
+                    runBlocking {
+                        launch(Dispatchers.IO) {
+                            sendCreateUserData(email,fullName,username,password, picture, context)
                         }
                     }
-                } else {
-                    ScrollableUserCreateForm(isCreatedAccount = true, context) { email, fullName, username,password, picture ->
-                            runBlocking {
-                                launch(Dispatchers.IO) {
-                                    sendCreateUserData(email,fullName,username,password, picture)
-                                    //{
-                                        //Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
-                                    //}
-                                }
-                            }
-                        }
-                    Text(
-                        text = "Volver al inicio de sesión",
-                        modifier = Modifier
-                            .clickable {
-                                showLoginForm.value = !showLoginForm.value
-                            }
-                            .padding(16.dp),
-                        color = colorResource(id = R.color.Buttom),
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScrollableUserCreateForm(path: String?,navController: NavController, context: Context, onDone: (String, String, String, String, File?) -> Unit = { _, _, _, _, _ -> }) {
+    LazyColumn(
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        item {
+            // Área desplazable
+            UserCreateForm(path,navController, context, onDone)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = stringResource(id = R.string.go_login),
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate(Screens.LoginScreen.name)
+                        }
+                        .padding(16.dp),
+                    color = colorResource(id = R.color.Buttom),
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.height(15.dp))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -180,17 +165,16 @@ fun SignUpScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val text1 = if (showLoginForm.value) stringResource(id = R.string.No_account) else stringResource(id = R.string.Have_account)
-                        val text2 = if (showLoginForm.value) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in)
-
                         Text(
-                            text = text1,
+                            text = stringResource(id = R.string.Have_account),
                             color = Color.White,
                         )
                         Text(
-                            text = text2,
+                            text = stringResource(id = R.string.Log_in),
                             modifier = Modifier
-                                .clickable { showLoginForm.value = !showLoginForm.value }
+                                .clickable {
+                                    navController.navigate(Screens.LoginScreen.name)
+                                }
                                 .padding(start = 5.dp),
                             color = colorResource(id = R.color.Buttom)
                         )
@@ -198,7 +182,7 @@ fun SignUpScreen(
                     Text(
                         text = stringResource(id = R.string.forgot_password),
                         modifier = Modifier
-                            .clickable { navController.navigate(Screens.RecoverPassword.name)}
+                            .clickable { navController.navigate(Screens.RecoverPassword.name) }
                             .padding(start = 5.dp),
                         color = colorResource(id = R.color.Buttom)
                     )
@@ -209,22 +193,7 @@ fun SignUpScreen(
 }
 
 @Composable
-fun ScrollableUserCreateForm(isCreatedAccount: Boolean = false, context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        item {
-            // Área desplazable
-            UserCreateForm(isCreatedAccount, context, onDone)
-        }
-    }
-}
-@Composable
-fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
+fun UserCreateForm(path:String?,navController: NavController,context: Context, onDone: (String, String, String, String, File?) -> Unit = { email, fullname, username, pwd, picture -> }) {
     val isCheckedList = remember { List(3) { mutableStateOf(false) } }
     val emailState = rememberSaveable { mutableStateOf("") }
     val passwordState = rememberSaveable { mutableStateOf("") }
@@ -233,6 +202,8 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
     val userNameState = rememberSaveable { mutableStateOf("") }
     val textPass = stringResource(id = R.string.password_advice)
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
+
+    Log.d("camera photo:","$path")
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -245,15 +216,8 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                     }
                 }
                 selectedImageUri.value = uri
-                onDone(
-                    emailState.value.trim(),
-                    fullNameState.value.trim(),
-                    userNameState.value.trim(),
-                    passwordState.value.trim(),
-                    file
-                )
             } catch (e: Exception) {
-                Log.d("UserCreateForm", "error: ${e.message}")
+                Log.d("CreateForm Image error:", "error: ${e.message}")
             }
         }
     }
@@ -266,16 +230,31 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
                 contentDescription = null,
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(shape = RoundedCornerShape(4.dp))
+                    .clip(CircleShape)
+                    .border(2.dp, Color.White, CircleShape)
                     .background(Color.LightGray)
             )
         }
-        Button(
-            onClick = {
-                launcher.launch("image/*")
+        Row {
+            Button(
+                onClick = {
+                    navController.navigate(Screens.CameraView.name)
+                },
+                colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Buttom))
+            ) {
+                Text(stringResource(id = R.string.take_photo), color = colorResource(id = R.color.white))
             }
-        ) {
-            Text(stringResource(id = R.string.image_upload))
+            Button(
+                onClick = {
+                    launcher.launch("image/*")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.Buttom),
+                    contentColor = colorResource(id = R.color.white)
+                )
+            ) {
+                Text(stringResource(id = R.string.image_upload), color = colorResource(id = R.color.white))
+            }
         }
         EmailInput(label = stringResource(id = R.string.email), emailState = emailState)
         NameInput(label = stringResource(id = R.string.fullname), fieldState = fullNameState)
@@ -303,7 +282,7 @@ fun UserCreateForm(isCreatedAccount: Boolean = false,context: Context, onDone: (
             id = R.string.data
         ), dialogText = stringResource(id = R.string.data_text))
         SubmitButton(
-            textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),
+            textId = stringResource(id = R.string.Sign_up),
             isEnabled = isCheckedList.all { it.value }
         ) {
             if (isCheckedList.all { it.value }) {
@@ -433,7 +412,7 @@ fun CheckButtonForRegister(isCheckedList: List<MutableState<Boolean>>, index: In
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()  // Ocupa el ancho máximo disponible
+            .fillMaxWidth()
             .padding(5.dp)
             .clickable {
                 showDialog = true
@@ -454,14 +433,13 @@ fun CheckButtonForRegister(isCheckedList: List<MutableState<Boolean>>, index: In
                 .clickable {
                     showDialog = true
                 }
-                .weight(1f)  // Ocupa el espacio restante
-                .wrapContentWidth(Alignment.Start),  // Alinea el texto a la izquierda
+                .weight(1f)
+                .wrapContentWidth(Alignment.Start),
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
     }
 
-    // Mostrar el cuadro de diálogo emergente
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -484,42 +462,5 @@ fun CheckButtonForRegister(isCheckedList: List<MutableState<Boolean>>, index: In
     }
 }
 
-@Composable
-fun UserLoginForm(isCreatedAccount: Boolean = false, onDone: (String, String) -> Unit = { _, _ -> }) {
-    val username = rememberSaveable { mutableStateOf("") }
-    val password = rememberSaveable { mutableStateOf("") }
-    val passwordVisible = rememberSaveable { mutableStateOf(false) }
-    val textPass = stringResource(id = R.string.password_advice)
-    Column(
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-
-        // Entrada de User
-        UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
-
-        // Entrada de Password
-
-        if (password.value.length < 8) {
-            Text(
-                text = textPass,
-                color = Color.Red
-            )
-        }
-
-        PasswordInput(
-            passwordSate = password,
-            labelId = stringResource(id = R.string.password),
-            passwordVisible = passwordVisible
-        )
-        // Botón de envío
-        SubmitButton(textId = if (isCreatedAccount) stringResource(id = R.string.Sign_up) else stringResource(id = R.string.Log_in),isEnabled = true) {
-            onDone(username.value.trim(), password.value.trim())
-
-        }
-    }
-}
 
 

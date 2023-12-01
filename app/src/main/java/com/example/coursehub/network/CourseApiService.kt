@@ -4,6 +4,7 @@ package com.example.coursehub.network
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.example.coursehub.R
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
 import retrofit2.Retrofit
@@ -113,27 +114,34 @@ class Auth{
     suspend fun update_info(email: String?,
                             fullName: String?,
                             username: String?,
-                            pictureUri: File?
-    ): Result<UserCreateResponse> {
-        return try {
-            val service = providesAuth().create(UserService::class.java)
-            val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
-            val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
-            val emailBody = email?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val fullNameBody = fullName?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val usernameBody = username?.toRequestBody("text/plain".toMediaTypeOrNull())
-            Log.d("Data user:", "${requestBody},${emailBody},${fullNameBody},${usernameBody}")
-            val response = service.updateOwnInfo(emailBody, fullNameBody, usernameBody, part)
-            Log.d("update data:","${response}")
-            if (response != null) {
-                Log.d("Updated:","${response.email}")
-                Result.success(response)
-            } else {
-                Result.failure(Exception("Error: User object not found in the response"))
+                            pictureUri: File?,
+                            context: Context
+    ){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                withContext(Dispatchers.Main) {
+                    val service = providesAuth().create(UserService::class.java)
+                    val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
+                    val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
+                    val emailBody = email?.toRequestBody("text/plain".toMediaTypeOrNull())
+                    val fullNameBody = fullName?.toRequestBody("text/plain".toMediaTypeOrNull())
+                    val usernameBody = username?.toRequestBody("text/plain".toMediaTypeOrNull())
+                    Log.d("Data user:", "${requestBody},${emailBody},${fullNameBody},${usernameBody}")
+                    val response = service.updateOwnInfo(emailBody, fullNameBody, usernameBody, part)
+                    Log.d("update data:","${response}")
+                    if (response != null) {
+                        Log.d("Updated:","${response.email}")
+                        Toast.makeText(context, R.string.updated_user, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, R.string.error_update, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.d("Update error:", "${e.message}")
+                    Toast.makeText(context, R.string.error_update, Toast.LENGTH_SHORT).show()
+                }
             }
-        } catch (e: Exception) {
-            Log.d("Update error:", "${e.message}")
-            Result.failure(e)
         }
     }
 
@@ -182,6 +190,29 @@ class Auth{
         }
     }
 
+    suspend fun deactivateUser(context: Context,login:()->Unit){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                withContext(Dispatchers.Main) {
+                    val service = providesAuth().create(UserService::class.java)
+                    val response = service.deactivateAccount()
+                    Toast.makeText(context, response.detail, Toast.LENGTH_SHORT).show()
+                }
+            }catch (e:Exception){
+                withContext(Dispatchers.Main) {
+                    if (e.message?.contains("HTTP 401") == true) {
+                        login()
+                        Log.d("Success:", ":D")
+                        Toast.makeText(context,"Account deleted", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.d("Error logout:", "${e.message}")
+
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 interface UserService{
@@ -221,6 +252,9 @@ interface UserService{
 
     @POST("user/logout")
     suspend fun logout(@Body data: LogoutData ): LogoutResponse
+
+    @PUT("user/deactivate_account")
+    suspend fun deactivateAccount(): TokenRespose
 }
 
 
@@ -229,27 +263,33 @@ suspend fun sendCreateUserData(
     fullName: String,
     username: String,
     password: String,
-    pictureUri: File?
-    //create:()-> Unit
-): Result<UserCreateResponse> {
-    return try {
-        val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
-        val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
-        val usernameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), username)
-        val emailBody = RequestBody.create("text/plain".toMediaTypeOrNull(), email)
-        val fullNameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), fullName)
-        val passwordBody = RequestBody.create("text/plain".toMediaTypeOrNull(), password)
-        val response = userService.createUser(usernameBody, emailBody, fullNameBody, passwordBody, part)
-        if (response != null) {
-            //create()
-            Log.d("Created:","${response.email}")
-            Result.success(response)
-        } else {
-            Result.failure(Exception("Error: User object not found in the response"))
+    pictureUri: File?,
+    context: Context
+){
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            withContext(Dispatchers.Main) {
+                val requestBody = RequestBody.create("image/*".toMediaTypeOrNull(), pictureUri!!)
+                val part = MultipartBody.Part.createFormData("profile_picture", pictureUri!!.name, requestBody)
+                val usernameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), username)
+                val emailBody = RequestBody.create("text/plain".toMediaTypeOrNull(), email)
+                val fullNameBody = RequestBody.create("text/plain".toMediaTypeOrNull(), fullName)
+                val passwordBody = RequestBody.create("text/plain".toMediaTypeOrNull(), password)
+                val response = userService.createUser(usernameBody, emailBody, fullNameBody, passwordBody, part)
+                if (response != null) {
+
+                    Log.d("Created:","${response.email}")
+                    Toast.makeText(context, R.string.Sing, Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, R.string.error_signup, Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context,R.string.error_signup, Toast.LENGTH_SHORT).show()
+                Log.d("Create error:", "${e.message}")
+            }
         }
-    } catch (e: Exception) {
-        Log.d("Create error:", "${e.message}")
-        Result.failure(e)
     }
 }
 

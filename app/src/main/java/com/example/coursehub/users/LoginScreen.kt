@@ -1,14 +1,18 @@
 package com.example.coursehub.users
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -19,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -30,19 +33,21 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.coursehub.R
 import com.example.coursehub.navigation.Screens
-import com.example.coursehub.network.resetPassword
-import com.example.coursehub.network.sendRecoverCode
+import com.example.coursehub.network.Auth
+import com.example.coursehub.network.TokenManager
+import com.example.coursehub.network.sendCreateUserData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 
 @Composable
-fun resetPasswordScreen(
+fun LogInScreen(
     navController: NavController,
     context: Context = LocalContext.current
 ) {
+    val login = Auth()
+    login.tokenManager = TokenManager(context)
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -53,8 +58,8 @@ fun resetPasswordScreen(
                 .padding(40.dp)
         ) {
             Text(
-                text = "Recover password",
-                fontSize = 35.sp,
+                text = stringResource(id = R.string.Sign_up),
+                fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
             )
@@ -73,46 +78,71 @@ fun resetPasswordScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                Spacer(modifier = Modifier.height(15.dp))
                 Image(
                     painter= painterResource(id = R.drawable.logo),
-                    contentDescription = null
-                )
-                resetPassForm(){email, token, password->
+                    contentDescription = null,
+                    )
+                UserLoginForm() { username, password ->
                     runBlocking {
                         launch(Dispatchers.IO) {
-                            resetPassword(context,email,token, password){
-                                navController.navigate(Screens.LoginScreen.name)
+                            login.sendLoginUserData(context,username,password){
+                                Toast.makeText(context, R.string.Log, Toast.LENGTH_SHORT).show()
+                                navController.navigate(Screens.HomeScreen.name)
                             }
                         }
                     }
                 }
-                Text(
-                    text = stringResource(id = R.string.Log_in),
-                    modifier = Modifier
-                        .clickable { navController.navigate(Screens.LoginScreen.name)}
-                        .padding(start = 5.dp),
-                    color = colorResource(id = R.color.Buttom)
-                )
+                Spacer(modifier = Modifier.height(15.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.No_account),
+                            color = Color.White,
+                        )
+                        Text(
+                            text = stringResource(id = R.string.Sign_up),
+                            modifier = Modifier
+                                .clickable { navController.navigate(Screens.SignUpScreen.name) }
+                                .padding(start = 5.dp),
+                            color = colorResource(id = R.color.Buttom)
+                        )
+                    }
+                    Text(
+                        text = stringResource(id = R.string.forgot_password),
+                        modifier = Modifier
+                            .clickable { navController.navigate(Screens.RecoverPassword.name) }
+                            .padding(start = 5.dp),
+                        color = colorResource(id = R.color.Buttom))
+                }
             }
         }
     }
 }
+
 @Composable
-fun resetPassForm( onDone: (String, String, String) -> Unit = { _, _, _ -> }) {
-    val email = rememberSaveable { mutableStateOf("") }
-    val token = rememberSaveable { mutableStateOf("") }
+fun UserLoginForm( onDone: (String, String) -> Unit = { _, _ -> }) {
+    val username = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
     val textPass = stringResource(id = R.string.password_advice)
-
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        UsernameInput(label= stringResource(id = R.string.email), fieldState = email)
-        UsernameInput(label= stringResource(id = R.string.token), fieldState = token)
+
+        // Entrada de User
+        UsernameInput(label= stringResource(id = R.string.username), fieldState = username)
+
+        // Entrada de Password
 
         if (password.value.length < 8) {
             Text(
@@ -120,17 +150,16 @@ fun resetPassForm( onDone: (String, String, String) -> Unit = { _, _, _ -> }) {
                 color = Color.Red
             )
         }
+
         PasswordInput(
             passwordSate = password,
             labelId = stringResource(id = R.string.password),
             passwordVisible = passwordVisible
         )
-        SubmitButton(textId = stringResource(id = R.string.reset),isEnabled = true) {
-            onDone(
-                email.value.trim(),
-                token.value.trim(),
-                password.value.trim()
-            )
+        // Botón de envío
+        SubmitButton(textId = stringResource(id = R.string.Log_in),isEnabled = true) {
+            onDone(username.value.trim(), password.value.trim())
+
         }
     }
 }

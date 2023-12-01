@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
@@ -92,7 +94,7 @@ fun ProfileView(navController: NavController, modifier: Modifier = Modifier, con
             userupdateForm2(userInfo = userInfo, context){ email, fullName, username, picture ->
                 runBlocking {
                     launch(Dispatchers.IO) {
-                        info.update_info(email, fullName ,username, picture)
+                        info.update_info(email, fullName ,username, picture, context)
                     }
                 }
             }
@@ -268,14 +270,8 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
                     }
                 }
                 selectedImageUri.value = uri
-                onDone(
-                    emailState.value.trim(),
-                    fullNameState.value.trim(),
-                    userNameState.value.trim(),
-                    file
-                )
             } catch (e: Exception) {
-                Log.d("UserCreateForm", "error: ${e.message}")
+                Log.d("UpdateForm Errors", "error: ${e.message}")
             }
         }
     }
@@ -288,15 +284,20 @@ fun userupdateForm2(userInfo: UserInfo?,context: Context, onDone: (String, Strin
             contentDescription = null,
             modifier = Modifier
                 .size(100.dp)
-                .clip(shape = RoundedCornerShape(4.dp))
+                .clip(CircleShape)
+                .border(2.dp, Color.White, CircleShape)
                 .background(Color.LightGray)
         )
         Button(
             onClick = {
                 launcher.launch("image/*")
-            }
+            },
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = colorResource(id = R.color.Buttom),
+                contentColor = colorResource(id = R.color.white)
+                )
         ) {
-            Text(stringResource(id = R.string.image_edit))
+            Text(stringResource(id = R.string.image_edit), color = colorResource(id = R.color.white))
         }
         EmailInput(label=stringResource(id = R.string.email),
             emailState = emailState

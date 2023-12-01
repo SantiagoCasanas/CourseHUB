@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "com.example.coursehub"
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -59,6 +59,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("com.google.accompanist:accompanist-permissions:0.28.0")
     implementation ("androidx.compose.ui:ui:1.5.4")
     implementation ("androidx.compose.material:material:1.5.4")
     implementation ("androidx.activity:activity-compose:1.8.0")
@@ -117,5 +118,14 @@ dependencies {
     implementation("com.squareup.picasso:picasso:2.71828")
 
     implementation("io.coil-kt:coil-compose:1.4.0")
+
+    //camera
+    val camerax_version = "1.3.0-rc01"
+    implementation ("androidx.camera:camera-camera2:${camerax_version}")
+    implementation ("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation ("androidx.camera:camera-view:${camerax_version}")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
 
 }

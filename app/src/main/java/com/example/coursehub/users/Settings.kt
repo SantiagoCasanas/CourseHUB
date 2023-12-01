@@ -59,6 +59,8 @@ import coil.compose.rememberImagePainter
 
 @Composable
 fun SettingsView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
+    val auth = Auth()
+    auth.tokenManager = TokenManager(context)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -80,16 +82,20 @@ fun SettingsView(navController: NavController, modifier: Modifier = Modifier, co
 
             // Espacio adicional entre el texto y los botones
             Spacer(modifier = Modifier.height(50.dp))
-
-            ButtonWithArrow(
-                text = stringResource(id = R.string.delete),
-                onClick = {  /* TODO: Acción para Settings */  }
-            )
+            deleteButton {
+                runBlocking {
+                    launch(Dispatchers.IO) {
+                        auth.deactivateUser(context){
+                            navController.navigate(Screens.LoginScreen.name)
+                        }
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(25.dp))
-            ButtonWithArrow(
+            /*ButtonWithArrow(
                 text = stringResource(id = R.string.inactivate),
                 onClick = { /* TODO: Acción para Settings */ }
-            )
+            )*/
         }
     }
 
@@ -188,3 +194,36 @@ fun SettingsView(navController: NavController, modifier: Modifier = Modifier, co
     }
 }
 
+@Composable
+fun deleteButton(onClick: () -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = stringResource(id = R.string.delete_account))},
+            text = { Text(text = stringResource(id = R.string.deleteAccount)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDialog = false
+                        onClick()
+                    }
+                ) {
+                    Text(text = stringResource(id = R.string.si))
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDialog = false }
+                ) {
+                    Text(text = stringResource(id = R.string.no))
+                }
+            },
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+    ButtonWithArrow(
+        text = stringResource(id = R.string.delete),
+        onClick = { showDialog = true },
+    )
+}

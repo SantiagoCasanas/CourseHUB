@@ -100,7 +100,7 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
                     runBlocking {
                         launch(Dispatchers.IO){
                             auth.userLogout(auth.tokenManager.getRefreshToken(context)){
-                                navController.navigate(Screens.LoginAndSignUpScreen.name)
+                                navController.navigate(Screens.LoginScreen.name)
                                 Toast.makeText(context, R.string.logout_success, Toast.LENGTH_SHORT).show()
                             }
                         }

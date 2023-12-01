@@ -5,18 +5,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.coursehub.users.GreetingImage
+import com.example.coursehub.users.LogInScreen
 import com.example.coursehub.users.SignUpScreen
 import com.example.coursehub.users.ProfileView
 import com.example.coursehub.users.ProfileViewUser
 import com.example.coursehub.users.SettingsView
+import com.example.coursehub.users.openCamera
 import com.example.coursehub.users.recoverPasswordScreen
 import com.example.coursehub.users.resetPasswordScreen
 
 @Composable
 fun CourseHubNavigate(){
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screens.LoginAndSignUpScreen.name){
-        composable(Screens.LoginAndSignUpScreen.name){
+    NavHost(navController = navController, startDestination = Screens.LoginScreen.name){
+        composable(Screens.SignUpScreen.name){
             SignUpScreen(navController = navController)
         }
         composable(Screens.HomeScreen.name){
@@ -36,6 +38,12 @@ fun CourseHubNavigate(){
         }
         composable(Screens.ResetPassword.name){
             resetPasswordScreen(navController = navController)
+        }
+        composable(Screens.CameraView.name){
+            openCamera(navController = navController)
+        }
+        composable(Screens.LoginScreen.name){
+            LogInScreen(navController = navController)
         }
     }
 }

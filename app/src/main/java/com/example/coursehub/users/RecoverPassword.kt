@@ -90,7 +90,7 @@ fun recoverPasswordScreen(
                 Text(
                     text = stringResource(id = R.string.Log_in),
                     modifier = Modifier
-                        .clickable { navController.navigate(Screens.LoginAndSignUpScreen.name)}
+                        .clickable { navController.navigate(Screens.LoginScreen.name)}
                         .padding(start = 5.dp),
                     color = colorResource(id = R.color.Buttom)
                 )

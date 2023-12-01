@@ -1,11 +1,13 @@
 package com.example.coursehub.navigation
 
 enum class Screens {
-    LoginAndSignUpScreen,
+    SignUpScreen,
     HomeScreen,
     UserProfile,
     UpdateScreen,
     SettingsScreen,
     RecoverPassword,
-    ResetPassword
+    ResetPassword,
+    CameraView,
+    LoginScreen
 }
