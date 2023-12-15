@@ -9,5 +9,6 @@ enum class Screens {
     RecoverPassword,
     ResetPassword,
     CameraView,
-    LoginScreen
+    LoginScreen,
+    CreateCourse
 }

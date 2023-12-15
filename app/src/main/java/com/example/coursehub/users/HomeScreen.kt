@@ -84,7 +84,7 @@ fun GreetingImage(navController: NavController, modifier: Modifier = Modifier){
                 )
             }
         }
-        IconButton(onClick = { /*TODO*/ },
+        IconButton(onClick = {navController.navigate(Screens.CreateCourse.name)},
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
