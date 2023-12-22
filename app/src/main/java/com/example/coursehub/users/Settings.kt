@@ -56,6 +56,7 @@ import java.io.File
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
 import coil.compose.rememberImagePainter
+import com.example.coursehub.navigationbar.Bar
 
 @Composable
 fun SettingsView(navController: NavController, modifier: Modifier = Modifier, context: Context = LocalContext.current){
@@ -99,99 +100,7 @@ fun SettingsView(navController: NavController, modifier: Modifier = Modifier, co
         }
     }
 
-    // Row con iconos de navegación
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        // Iconos de navegación
-        IconButton(onClick = { navController.navigate(Screens.HomeScreen.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Home",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { /* TODO: Acción para Course */ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = "Course",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Course",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { /* TODO: Acción para Search */ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Search",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { navController.navigate(Screens.UserProfile.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Account",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Account",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-    }
+    Bar(navController = navController)
 }
 
 @Composable
@@ -209,7 +118,7 @@ fun deleteButton(onClick: () -> Unit) {
                         onClick()
                     }
                 ) {
-                    Text(text = stringResource(id = R.string.si))
+                    Text(text = stringResource(id = R.string.yes))
                 }
             },
             dismissButton = {

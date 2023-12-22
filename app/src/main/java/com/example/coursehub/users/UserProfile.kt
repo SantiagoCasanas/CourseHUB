@@ -43,6 +43,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.ButtonDefaults
+import com.example.coursehub.navigationbar.Bar
 import com.example.coursehub.network.Auth
 import com.example.coursehub.network.TokenManager
 import kotlinx.coroutines.Dispatchers
@@ -109,100 +110,7 @@ fun ProfileViewUser(navController: NavController, modifier: Modifier = Modifier,
             )
         }
     }
-
-    // Row con iconos de navegación
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        // Iconos de navegación
-        IconButton(onClick = { navController.navigate(Screens.HomeScreen.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = stringResource(id = R.string.home_title),
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = stringResource(id = R.string.home_title),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { /* TODO: Acción para Course */ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = stringResource(id = R.string.course_title),
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = stringResource(id = R.string.course_title),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { /* TODO: Acción para Search */ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(id = R.string.search_title),
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = stringResource(id = R.string.search_title),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-
-        IconButton(onClick = { navController.navigate(Screens.UserProfile.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = stringResource(id = R.string.account_title),
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = stringResource(id = R.string.account_title),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-    }
+    Bar(navController = navController)
 }
 
 @Composable
@@ -262,7 +170,7 @@ fun LogoutButton(textId: String, onClick: () -> Unit) {
                         onClick()
                     }
                 ) {
-                    Text(text = stringResource(id = R.string.si))
+                    Text(text = stringResource(id = R.string.yes))
                 }
             },
             dismissButton = {

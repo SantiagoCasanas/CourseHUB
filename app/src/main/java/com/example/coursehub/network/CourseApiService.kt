@@ -5,6 +5,8 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.example.coursehub.R
+import com.example.coursehub.users.CourseData
+import com.example.coursehub.users.CreateCourseData
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
 import retrofit2.Retrofit
@@ -20,6 +22,7 @@ import com.example.coursehub.users.LogoutData
 import com.example.coursehub.users.LogoutResponse
 import com.example.coursehub.users.ResetPassData
 import com.example.coursehub.users.TokenRespose
+import com.example.coursehub.users.TopicData
 import com.example.coursehub.users.UserCreateResponse
 import com.example.coursehub.users.UserInfo
 import com.example.coursehub.users.UserInfoResponse
@@ -38,7 +41,6 @@ import retrofit2.http.Part
 import java.io.File
 import java.net.ProtocolException
 import javax.inject.Inject
-
 
 
 private const val BASE_URL = "https://jesus.pythonanywhere.com/"
@@ -213,6 +215,53 @@ class Auth{
         }
     }
 
+    suspend fun createNewCourse(
+        title: String,
+        description: String,
+        topic: String,
+        course:()->Unit
+    ){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                withContext(Dispatchers.Main){
+                    val service = providesAuth().create(UserService::class.java)
+                    val data = CreateCourseData(title,description,topic)
+                    val response = service.createCourse(data)
+                    Log.d("Course created","$response")
+                    course()
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    Log.d("Course error:","Failed to create ${e.message}")
+                }
+            }
+        }
+    }
+
+    suspend fun retrieveTopics():List<TopicData>?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getTopics()
+            Log.d("Topics:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Topics error:","Failed to list ${e.message}")
+            null
+        }
+    }
+
+    suspend fun retrieveCourses():List<CourseData>?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getCourses()
+            Log.d("Topics:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Topics error:","Failed to list ${e.message}")
+            null
+        }
+    }
+
 }
 
 interface UserService{
@@ -255,6 +304,15 @@ interface UserService{
 
     @PUT("user/deactivate_account")
     suspend fun deactivateAccount(): TokenRespose
+
+    @GET("course/list_topics/")
+    suspend fun getTopics(): List<TopicData>
+
+    @GET("course/create_list_course/")
+    suspend fun getCourses(): List<CourseData>
+
+    @POST("course/create_list_course/")
+    suspend fun createCourse(@Body data: CreateCourseData): CourseData
 }
 
 

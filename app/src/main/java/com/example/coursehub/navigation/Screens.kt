@@ -10,5 +10,6 @@ enum class Screens {
     ResetPassword,
     CameraView,
     LoginScreen,
-    CreateCourse
+    CreateCourses,
+    CoursesView
 }

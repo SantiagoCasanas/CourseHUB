@@ -1,5 +1,6 @@
 package com.example.coursehub.users
 
+import android.icu.text.CaseMap.Title
 import android.net.Uri
 import com.google.gson.annotations.SerializedName
 
@@ -73,4 +74,26 @@ data class LogoutResponse(
     val detail: String?,
     val code: String?,
     val messages: String?
+)
+
+data class CreateCourseData(
+    val tittle: String,
+    val description: String,
+    val topic: String
+)
+
+data class CourseData(
+    val author : String,
+    val topic : String,
+    val tittle: String,
+    val description: String,
+    val calification: String,
+    @SerializedName("number_of_chapters")
+    val chapters: String
+)
+
+data class TopicData(
+    val id: String,
+    @SerializedName("topic_name")
+    val topic : String,
 )

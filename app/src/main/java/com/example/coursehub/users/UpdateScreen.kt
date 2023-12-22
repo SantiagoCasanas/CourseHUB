@@ -59,6 +59,7 @@ import androidx.test.core.app.ActivityScenario.launch
 import coil.compose.rememberImagePainter
 import java.io.File
 import coil.compose.rememberImagePainter
+import com.example.coursehub.navigationbar.Bar
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
@@ -100,95 +101,8 @@ fun ProfileView(navController: NavController, modifier: Modifier = Modifier, con
             }
         }
     }
-    
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        IconButton(onClick = { navController.navigate(Screens.HomeScreen.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Home",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-        IconButton(onClick = { /*TODO*/ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = "Course",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Course",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-        IconButton(onClick = { /*TODO*/ },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Search",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-        IconButton(onClick = { navController.navigate(Screens.UserProfile.name) },
-            modifier = Modifier
-                .padding(8.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Account",
-                    tint = colorResource(id = R.color.white),
-                    modifier = Modifier
-                        .size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(1.dp))
-                Text(
-                    text = "Account",
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    color = colorResource(id = R.color.white)
-                )
-            }
-        }
-    }
+
+    Bar(navController = navController)
 }
 
 @Composable

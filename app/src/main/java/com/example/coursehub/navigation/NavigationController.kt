@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.coursehub.users.CreateCourseForm
+import com.example.coursehub.courses.Courses
+import com.example.coursehub.courses.CreateCourseForm
+import com.example.coursehub.courses.createCourseScreen
 import com.example.coursehub.users.GreetingImage
 import com.example.coursehub.users.LogInScreen
 import com.example.coursehub.users.SignUpScreen
@@ -46,8 +48,11 @@ fun CourseHubNavigate(){
         composable(Screens.LoginScreen.name){
             LogInScreen(navController = navController)
         }
-        composable(Screens.CreateCourse.name){
-            CreateCourseForm(navController = navController)
+        composable(Screens.CreateCourses.name){
+            createCourseScreen(navController = navController)
+        }
+        composable(Screens.CoursesView.name){
+            Courses(navController = navController)
         }
     }
 }
