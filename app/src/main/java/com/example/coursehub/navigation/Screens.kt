@@ -11,5 +11,12 @@ enum class Screens {
     CameraView,
     LoginScreen,
     CreateCourses,
-    CoursesView
+    CoursesView,
+    MyCourses,
+    CreateChapter,
+    CourseContent,
+    SearchCourses,
+    TakeCourse,
+    ChaptersView,
+    ChapterContent
 }

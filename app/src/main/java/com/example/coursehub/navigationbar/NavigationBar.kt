@@ -80,7 +80,7 @@ fun Bar(navController: NavController, modifier: Modifier = Modifier){
             }
         }
 
-        IconButton(onClick = { /* TODO: Acción para Search */ },
+        IconButton(onClick = { navController.navigate(Screens.SearchCourses.name) },
             modifier = Modifier
                 .padding(8.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -58,7 +58,7 @@ fun LogInScreen(
                 .padding(40.dp)
         ) {
             Text(
-                text = stringResource(id = R.string.Sign_up),
+                text = stringResource(id = R.string.Log_in),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold

@@ -16,17 +16,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,28 +37,21 @@ import androidx.navigation.NavController
 import com.example.coursehub.R
 import com.example.coursehub.navigation.Screens
 import com.example.coursehub.navigationbar.Bar
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.LibraryAdd
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import com.example.coursehub.network.Auth
 import com.example.coursehub.network.TokenManager
 import com.example.coursehub.users.CourseData
-import com.example.coursehub.users.MyCourseData
 import com.example.coursehub.users.TopicData
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-
 @Composable
-fun Courses(navController: NavController,
+fun SearchCourses(navController: NavController,
             modifier: Modifier = Modifier,
             context: Context = LocalContext.current
 ){
     val auth = Auth()
     auth.tokenManager = TokenManager(context)
-    val courses = remember { runBlocking { auth.retrieveCoursesIHaveTaken() }}
+    val courses = remember { runBlocking { auth.retrieveCourses() } }
+    val topics = remember { runBlocking { auth.retrieveTopics() } }
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -71,39 +65,17 @@ fun Courses(navController: NavController,
             horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = stringResource(id = R.string.course_title),
+                text = stringResource(id = R.string.search_title),
                 fontSize = 40.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
             )
             SearchBar(onSearch = {})
-            Row {
-                Button(
-                    onClick = { navController.navigate(Screens.CreateCourses.name)},
-                    colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
-                ) {
-                    Icon(imageVector = Icons.Default.LibraryAdd, contentDescription = stringResource(id = R.string.new_course))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { navController.navigate(Screens.MyCourses.name) },
-                    colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
-                ) {
-                    Text(text = stringResource(id = R.string.my_courses))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { navController.navigate(Screens.CoursesView.name) },
-                    colors = ButtonDefaults.buttonColors( containerColor = colorResource(id = R.color.Background_up))
-                ) {
-                    Text(text = stringResource(id = R.string.course_i_have_taken))
-                }
-            }
-            
+
             Spacer(modifier = Modifier.height(15.dp))
-            
+
             Text(
-                text = stringResource(id = R.string.courses),
+                text = stringResource(id = R.string.courses_suggestions),
                 fontSize = 25.sp,
                 color = colorResource(id = R.color.white),
                 fontWeight = FontWeight.Bold
@@ -119,7 +91,7 @@ fun Courses(navController: NavController,
                         shape = RoundedCornerShape(16.dp)
                     )
             ) {
-                scrollableListMyCourses(courses,navController)
+                scrollableListSuggestCourses(courses, topics, navController)
             }
         }
     }
@@ -127,8 +99,8 @@ fun Courses(navController: NavController,
 }
 
 @Composable
-fun myCoursesRow(courseId:String, title:String, author:String, chapter:String, navController: NavController){
-
+fun courseSuggestRow(courseId:String, title:String, author:String, topic:String, topics:List<TopicData>?, navController: NavController){
+    val topicObject = topics!!.find { it.id == topic }
     Spacer(modifier = Modifier.height(10.dp))
     Row(
         modifier = Modifier
@@ -137,6 +109,11 @@ fun myCoursesRow(courseId:String, title:String, author:String, chapter:String, n
                 shape = RoundedCornerShape(16.dp)
             )
             .fillMaxWidth()
+            .clickable {
+                Log.d("ClickEvent", "Clicked on Row")
+                val routeWithParam = "${Screens.TakeCourse.name}/$courseId"
+                navController.navigate(routeWithParam)
+            }
     ) {
         Column {
             Icon(imageVector = Icons.Default.Book,
@@ -159,18 +136,17 @@ fun myCoursesRow(courseId:String, title:String, author:String, chapter:String, n
                 )
                 Text(text = author, color = colorResource(id = R.color.white))
             }
-            Text(text = "Unity: $chapter",color = colorResource(id = R.color.white))
+            Text(text = topicObject!!.topic,color = colorResource(id = R.color.white))
         }
     }
     Spacer(modifier = Modifier.height(10.dp))
 }
 
 @Composable
-fun scrollableListMyCourses(itemsList: List<MyCourseData>?,navController: NavController) {
+fun scrollableListSuggestCourses(itemsList: List<CourseData>?, topics:List<TopicData>?, navController: NavController) {
     LazyColumn {
         items(itemsList!!) { item ->
-            myCoursesRow(item.course,item.courseTittle,item.username,item.chapter, navController)
+            courseSuggestRow(item.id,item.tittle,item.authorUsername,item.topic, topics!!,navController)
         }
     }
 }
-

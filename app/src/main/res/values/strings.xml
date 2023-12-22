@@ -47,11 +47,19 @@
     <string name="error_update">Failed to update</string>
     <string name="delete_account">Delete Account</string>
     <string name="add_course">Create course</string>
+    <string name="add_chapter">Create chapter</string>
     <string name="course_name">Course name</string>
+    <string name="tittle">Tittle</string>
+    <string name="content">Content</string>
     <string name="new_course">New course</string>
+    <string name="new_chapter">New chapter</string>
     <string name="my_courses">Created by me</string>
+    <string name="chapter">Add chapter</string>
+    <string name="courses_suggestions">Suggestions</string>
+    <string name="start_course">Start course</string>
     <string name="courses">My courses</string>
     <string name="course_description">Course description</string>
+    <string name="course_i_have_taken">My courses</string>
     <string name="deleteAccount">Are you sure about deleting your account? This action cannot be reversed</string>
     <string name="terminos_y_condiciones">Responsible Use:
 Use the application in accordance with the law and ethically.

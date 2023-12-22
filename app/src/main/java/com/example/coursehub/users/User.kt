@@ -83,7 +83,10 @@ data class CreateCourseData(
 )
 
 data class CourseData(
+    val id: String,
     val author : String,
+    @SerializedName("author_username")
+    val authorUsername: String,
     val topic : String,
     val tittle: String,
     val description: String,
@@ -96,4 +99,33 @@ data class TopicData(
     val id: String,
     @SerializedName("topic_name")
     val topic : String,
+)
+
+data class MyCourseData(
+    val user : String,
+    @SerializedName("user_username")
+    val username: String,
+    val course : String,
+    @SerializedName("course_title")
+    val courseTittle: String,
+    @SerializedName("number_of_chapter")
+    val chapter: String,
+    val calification: String
+)
+
+data class CreateChapterData(
+    val course : String,
+    val tittle: String,
+    val content : String
+)
+data class ResponseChapterData(
+    val course : String,
+    val tittle: String,
+    val content : String,
+    @SerializedName("number_of_chapter")
+    val chapter: String
+)
+
+data class TakeCourseData(
+    val course: String
 )

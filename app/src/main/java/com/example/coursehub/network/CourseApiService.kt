@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import com.example.coursehub.R
 import com.example.coursehub.users.CourseData
+import com.example.coursehub.users.CreateChapterData
 import com.example.coursehub.users.CreateCourseData
 import com.example.coursehub.users.LoginResponse
 import com.example.coursehub.users.LoginUser
@@ -20,7 +21,10 @@ import kotlinx.coroutines.withContext
 import com.example.coursehub.users.GetTokenData
 import com.example.coursehub.users.LogoutData
 import com.example.coursehub.users.LogoutResponse
+import com.example.coursehub.users.MyCourseData
 import com.example.coursehub.users.ResetPassData
+import com.example.coursehub.users.ResponseChapterData
+import com.example.coursehub.users.TakeCourseData
 import com.example.coursehub.users.TokenRespose
 import com.example.coursehub.users.TopicData
 import com.example.coursehub.users.UserCreateResponse
@@ -38,6 +42,7 @@ import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 import java.io.File
 import java.net.ProtocolException
 import javax.inject.Inject
@@ -254,14 +259,105 @@ class Auth{
         return try {
             val service = providesAuth().create(UserService::class.java)
             val response = service.getCourses()
-            Log.d("Topics:","$response")
+            Log.d("Courses:","$response")
             response
         }catch (e: Exception){
-            Log.d("Topics error:","Failed to list ${e.message}")
+            Log.d("Courses error:","Failed to list ${e.message}")
             null
         }
     }
 
+    suspend fun retrieveCoursesCreatedByMe():List<CourseData>?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getCoursesCreatedByMe()
+            Log.d("My courses:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Courses error:","Failed to list ${e.message}")
+            null
+        }
+    }
+
+    suspend fun retrieveCoursesIHaveTaken():List<MyCourseData>?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getCoursesIHaveTaken()
+            Log.d("My courses:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Courses error:","Failed to list ${e.message}")
+            null
+        }
+    }
+
+    suspend fun createNewChapter(
+        courseId: String,
+        title: String,
+        description: String,
+        course:()->Unit
+    ){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                withContext(Dispatchers.Main){
+                    val service = providesAuth().create(UserService::class.java)
+                    val data = CreateChapterData(courseId,title,description)
+                    val response = service.createChapter(data)
+                    Log.d("Chapter created","$response")
+                    course()
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    Log.d("Chapter error:","Failed to create ${e.message}")
+                }
+            }
+        }
+    }
+
+    suspend fun retrieveCourse(id:String):CourseData?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getCourseById(id.toInt())
+            Log.d("Courses:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Courses error:","Failed to retrieve ${id.toInt().javaClass} ${e.message}")
+            null
+        }
+    }
+
+    suspend fun takeNewCourse(
+        courseId: String,
+        course:()->Unit
+    ){
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                withContext(Dispatchers.Main){
+                    val service = providesAuth().create(UserService::class.java)
+                    val data = TakeCourseData(courseId)
+                    val response = service.takeCourse(data)
+                    Log.d("Course started","$response")
+                    course()
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    Log.d("Course take error:","Failed ${e.message}")
+                }
+            }
+        }
+    }
+
+    suspend fun retrieveChapters(id:String):List<ResponseChapterData>?{
+        return try {
+            val service = providesAuth().create(UserService::class.java)
+            val response = service.getChaptersById(id.toInt())
+            Log.d("Courses:","$response")
+            response
+        }catch (e: Exception){
+            Log.d("Courses error:","Failed to retrieve ${id.toInt().javaClass} ${e.message}")
+            null
+        }
+    }
 }
 
 interface UserService{
@@ -313,6 +409,24 @@ interface UserService{
 
     @POST("course/create_list_course/")
     suspend fun createCourse(@Body data: CreateCourseData): CourseData
+
+    @GET("course/list_my_courses/")
+    suspend fun getCoursesIHaveTaken(): List<MyCourseData>?
+
+    @GET("course/list_courses_created_by_me/")
+    suspend fun getCoursesCreatedByMe(): List<CourseData>?
+
+    @POST("course/create_chapter/")
+    suspend fun createChapter(@Body data: CreateChapterData): ResponseChapterData
+
+    @GET("course/course/{id}")
+    suspend fun getCourseById(@Path("id") courseId: Int): CourseData?
+
+    @POST("course/user_take_course/")
+    suspend fun takeCourse(@Body data: TakeCourseData): MyCourseData
+
+    @GET("course/course/{course_id}/chapters/")
+    suspend fun getChaptersById(@Path("course_id") courseId: Int): List<ResponseChapterData>?
 }
 
 
